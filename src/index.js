@@ -1,7 +1,12 @@
 // require('dotenv').config({path : './env'})
 
+import express from "express";
 import dotenv from "dotenv";
+
+// configure dotenv path for usinf es6 syntext
 dotenv.config({path : './.env'});
+
+
 
 import cors from "cors"
 import cookieParser from "cookie-parser";
@@ -13,17 +18,18 @@ import connectDB from './db/index.js';
 
 // configure cors
 app.use(cors({
+  // cors_origin = *   ==> which meance accept all riquest
   origin: process.env.CORS_ORIGIN
 }))
 
-// configure json
+// configure json to make exppress work with json data
 app.use(express.json({limit : '16kb'}))
 // configure url encoder
 app.use(express.urlencoded({extended: true, limit : '16kb'}))
 // configure static files 
 app.use(express.static('public'))
 // configure cookies
-app.use(express.cookieParser())
+app.use(cookieParser())
 
 
 
