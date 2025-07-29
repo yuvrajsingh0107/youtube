@@ -20,6 +20,7 @@ class APIerror extends Error{
     if(stack){
       this.stack = stack
     }else{
+      // ye ase hi hota
       Error.captureStackTrace(this, this.constructor)
     }
   }
