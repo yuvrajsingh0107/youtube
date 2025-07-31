@@ -3,14 +3,14 @@
 
 // yha pa ak fnction he async handeler isme ka function ai ga use ye async me wrape kar ke trycatch laga ke exicute kar dega
  const asyncHandler = (reqHandler) => {
-  (req, res, next) => {
+  return (req, res, next) => {
     Promise.resolve(reqHandler(req,res,next))
-    .catch((erroor) => next(erroor));
+    .catch((error) => next(error));
   }
  }
 
 
-export default asyncHandler
+export  {asyncHandler}
 
 
 //  this is one way a higher order function 
