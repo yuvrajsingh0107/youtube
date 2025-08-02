@@ -14,7 +14,7 @@ class APIerror extends Error{
     this.statusCode = statusCode
     this.message = message
     this.data = null
-    this.success = fase
+    this.success = false
     this.errors = errors
 
     if(stack){

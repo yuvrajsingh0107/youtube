@@ -6,7 +6,7 @@ import multer from "multer";
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // is dir me file save hogi
-    cb(null, "./public/temp")
+    cb(null, "./public/photos")
   },
   filename: function (req, file, cb) {
     // user ke diye hue name se save hogi
@@ -14,4 +14,23 @@ const storage = multer.diskStorage({
   }
 })
 
-const upload = multer({ storage })
+export const upload = multer({ storage })
+
+
+/*
+import multer from "multer";
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./public/temp")
+    },
+    filename: function (req, file, cb) {
+      
+      cb(null, file.originalname)
+    }
+  })
+  
+export const upload = multer({ 
+    storage, 
+})
+*/

@@ -35,9 +35,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "password is required"]
   },
   refreshToken: {
-    type: String,
-    required: true
-
+    type: String
   },
   watchHistory: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -56,8 +54,7 @@ const userSchema = new mongoose.Schema({
 userSchema.pre("save", async function (next) {
   if (this.isModified('password')) {
     //if passwored id modified then encrypt the password
-    this.password = bcrypt.hash(this.password, 10);
-
+    this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 })
@@ -71,7 +68,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 
 // hear we genrated access token
 userSchema.methods.genrateAssessToken = async function () {
-  return await jwt.sign({
+  return  jwt.sign({
     _id: this._id,
     userName: this.userName,
     email: this.email
@@ -84,7 +81,7 @@ userSchema.methods.genrateAssessToken = async function () {
 }
 // hear we genrated refresh  token
 userSchema.methods.genrateRefreshToken = async function () { 
-  return await jwt.sign({
+  return  jwt.sign({
     _id: this._id,
   },
     process.env.REFRESH_TOKEN_SECRET
