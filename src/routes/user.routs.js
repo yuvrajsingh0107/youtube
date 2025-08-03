@@ -1,8 +1,9 @@
 import { Router } from "express";
 import fs from "fs"
 
-import {registerUser} from '../controllers/registerUser.controllers.js';
+import {loginUser, logoutUser, registerUser} from '../controllers/registerUser.controllers.js';
 import { upload } from "../middlewares/multer.middelwear.js"
+import { verifyJWT } from "../middlewares/auth.middelwear.js";
 const router = Router();
 
 const folderPath = "./public/photos";
@@ -24,6 +25,10 @@ router.route("/regiseter").post(
   ]),
   registerUser
 )
+
+router.route("/login").post(loginUser);
+
+router.route("/logout").post(verifyJWT , logoutUser)
 
 export default router;
 

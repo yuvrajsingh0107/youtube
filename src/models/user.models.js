@@ -75,18 +75,20 @@ userSchema.methods.genrateAssessToken = async function () {
   },
   process.env.ACCESS_TOKEN_SECRET
   , {
-    expirIn: process.env.ACCESS_TOKEN_EXPIRY
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY
   }
 )
 }
+
+
 // hear we genrated refresh  token
 userSchema.methods.genrateRefreshToken = async function () { 
   return  jwt.sign({
-    _id: this._id,
-  },
+      _id: this._id,
+    },
     process.env.REFRESH_TOKEN_SECRET
     , {
-      expirIn: process.env.REFRESH_TOKEN_EXPIRY
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     }
   )
 }

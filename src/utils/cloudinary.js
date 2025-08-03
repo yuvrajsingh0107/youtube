@@ -33,6 +33,7 @@ console.log("Cloudinary config:", cloudinary.config());
     }); 
     // file has been uploded successfully
     // console.log("file uploded sucessfully on coludinury"+ res.url);
+    fs.unlinkSync(localfilePath);
     return res;
   } catch (error) {
     // the file is present in our surver if it fails to uplode then we need to remove from our surver before re trying 
