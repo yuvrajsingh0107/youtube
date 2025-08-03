@@ -3,6 +3,7 @@ import { APIerror } from "../utils/APIerror.js"
 import { User } from '../models/user.models.js';
 import { uplodeFileOnCloudinary } from "../utils/cloudinary.js"
 import { APIresponse } from "../utils/APIresponse.js";
+import { jwt } from "jsonwebtoken";
 
 
 const genrateAccessTokenAndRefreshToken = async (id) => {
@@ -215,4 +216,65 @@ const logoutUser = asyncHandler(async(req, res) => {
 
 })
 
-export { registerUser, loginUser , logoutUser}
+
+
+const  refreshAccessToker = asyncHandler( async (req, res) => {
+  const recivedRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+  
+  if(!recivedRefreshToken){
+    throw new APIerror(409, "user is not unauthorised");
+  }
+
+  const decodedUser = jwt.verify(recivedRefreshToken, process.env.REFRESH_TOKEN_SECRET );
+
+  if(!decodedUser){
+    throw new APIerror(500, "unable to process refresh token ");
+  }
+
+  const user  = await User.findById(decodedUser._id);
+
+  if(!user){
+    throw new APIerror(407, "invalid refresh token")
+  }
+
+  if(recivedRefreshToken !== user.refreshToken){
+    throw new APIerror(409, "token is sexpired user");
+  }
+
+  const {refreshToken , accessToken} = await genrateAccessTokenAndRefreshToken(user._id);
+
+  const logedInUser = await User.findById(user._id).select("-password -refreshToken");
+
+   const optins = {
+    httpOnly:true,
+    secure: true
+  }
+
+  return res
+  .status(200)
+  .cookie("accessToken", accessToken, optins)
+  .cookie("refreshToken", refreshToken, optins)
+  .json(
+    new APIresponse(
+      200,
+      {
+        data: accessToken, refreshToken, logedInUser
+      },
+      "user login sucessfully"
+    )
+  )
+
+  // ager user ka token db ke token se match ho jai to 
+  // decode refresh token 
+  // get the user of thet id
+  // match the user token wiht recived token
+  // if same
+    // genrate new access and refresh token 
+    // update refresh tokken in db
+    // set both in cookies at user end
+    // login user
+  // nhi to
+    // send error msg 
+})
+
+export { registerUser, loginUser , logoutUser, refreshAccessToker}
