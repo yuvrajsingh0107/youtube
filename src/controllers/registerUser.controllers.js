@@ -3,7 +3,9 @@ import { APIerror } from "../utils/APIerror.js"
 import { User } from '../models/user.models.js';
 import { uplodeFileOnCloudinary } from "../utils/cloudinary.js"
 import { APIresponse } from "../utils/APIresponse.js";
-import { jwt } from "jsonwebtoken";
+import  jwt  from "jsonwebtoken";
+
+
 
 
 const genrateAccessTokenAndRefreshToken = async (id) => {
@@ -277,4 +279,154 @@ const  refreshAccessToker = asyncHandler( async (req, res) => {
     // send error msg 
 })
 
-export { registerUser, loginUser , logoutUser, refreshAccessToker}
+
+
+const changePassword = asyncHandler(async (req, res) => {
+  const {oldPassword, newPassword} = req.body;
+
+  if(!oldPassword || !newPassword){
+    throw new APIerror(409, "both fildes are requrired");
+  }
+
+  const user_id = req.user?._id;
+
+  const user = await User.findById(user_id);
+
+
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if(!isPasswordCorrect){
+    throw new APIerror(405, "unauthorized user ");
+  }
+
+
+  user.password = newPassword;
+  user.save({validateBeforeSave: false});
+
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200,{}, "password change sucessfully")
+  )
+
+})
+
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+  .status(200)
+  .json(new APIresponse(200, req.user, "user fatch sucessfully"));
+
+})
+
+const updateAvatar = asyncHandler( async (req, res) => {
+  const usr_id = req.user?._id;
+
+  if(!usr_id){
+    throw new APIerror(400, "aunouthorized user");
+  }
+
+  let localfilePath;
+
+  if(res.files &&  Array.isArray(res.files?.avatar) && res.files.avatar.length > 0){
+    localfilePath = res.files.avatar[0].path
+  }
+
+  if(!localfilePath){
+    throw new APIerror(400, "avtar not found")
+  }
+  const avatar = await uplodeFileOnCloudinary(localfilePath);
+
+  const user = await User.findByIdAndUpdate(
+    usr_id,
+    {
+      $set: {
+        avatar : avatar.url
+      }
+    }
+  )
+  .select("-password -refreshToken -watchHistory");
+
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200, user, "avatar updated sucessfully")
+  )
+
+})
+
+
+const updateCoverImage = asyncHandler( async (req, res) => {
+  const usr_id = req.user?._id;
+
+  if(!usr_id){
+    throw new APIerror(400, "aunouthorized user");
+  }
+
+  let localfilePath;
+
+  if(res.files &&  Array.isArray(res.files?.avatar) && res.files.avatar.length > 0){
+    localfilePath = res.files.coverImage[0].path
+  }
+
+  if(!localfilePath){
+    throw new APIerror(400, "avtar not found")
+  }
+  const avatar = await uplodeFileOnCloudinary(localfilePath);
+
+  const user = await User.findByIdAndUpdate(
+    usr_id,
+    {
+      $set: {
+        avatar : coverImage.url
+      }
+    }
+  )
+  .select("-password -refreshToken -watchHistory");
+
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200, user, "coverimage updated sucessfully")
+  )
+
+})
+
+
+const updateFullName = asyncHandler( async (req, res) => {
+  const user_id = req.user?._id
+  const fullName = req.body?.fullName;
+
+  if(!user_id){
+    throw new APIerror(405, "user not found");
+  }
+  if(!fullName){
+    throw new APIerror(401, "full name is riquired");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    user_id,
+    {
+      $set: {
+      fullName
+    }
+    }
+  ) 
+  .select("-password -refreshToken -watchHistory");
+
+  return res.status(200)
+  .json(
+    new APIresponse(200, user, "fullname updated sucess fully")
+  )
+})
+
+export { 
+    registerUser,
+    loginUser ,
+    logoutUser,
+    refreshAccessToker,
+    changePassword,
+    getCurrentUser, 
+    updateAvatar, 
+    updateCoverImage,
+    updateFullName
+}

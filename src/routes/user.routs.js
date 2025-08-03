@@ -32,6 +32,15 @@ router.route("/logout").post(verifyJWT , logoutUser);
 
 router.route("refresh-token").post(refreshAccessToker)
 
+router.route("/updateAvatar").post(
+  upload.fields([
+    {
+      name: "avatar",
+      maxCount: 1
+    }
+  ])
+)
+
 export default router;
 
 /*

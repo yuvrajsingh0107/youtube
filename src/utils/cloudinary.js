@@ -16,20 +16,20 @@ async function uplodeFileOnCloudinary(localfilePath) {
   // console.log("cloudinery",localfilePath)
 
 
-  console.log("cloud_name:", process.env.CLOUDINARY_CLOUD_NAME);
-  console.log("api_key:", process.env.CLOUDINARY_API_KEY);
-  console.log("api_secret:", process.env.CLOUDINARY_API_SECRET);
-  console.log("Cloudinary config:", cloudinary.config());
+  // console.log("cloud_name:", process.env.CLOUDINARY_CLOUD_NAME);
+  // console.log("api_key:", process.env.CLOUDINARY_API_KEY);
+  // console.log("api_secret:", process.env.CLOUDINARY_API_SECRET);
+  // console.log("Cloudinary config:", cloudinary.config());
   try {
     if (!localfilePath) return null;
     // uplode file of given path
-    const res = await cloudinary.uploader.upload(localfilePath, {
+    const result = await cloudinary.uploader.upload(localfilePath, {
       resource_type: "auto"
     });
     // file has been uploded successfully
     // console.log("file uploded sucessfully on coludinury"+ res.url);
     fs.unlinkSync(localfilePath);
-    return res;
+    return result;
   } catch (error) {
     // the file is present in our surver if it fails to uplode then we need to remove from our surver before re trying 
     fs.unlinkSync(localfilePath);
