@@ -1,11 +1,10 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { APIerror } from "../utils/APIerror.js"
 import { User } from '../models/user.models.js';
-import { uplodeFileOnCloudinary } from "../utils/cloudinary.js"
+import { deleteFileOnCloudniry, uplodeFileOnCloudinary } from "../utils/cloudinary.js"
 import { APIresponse } from "../utils/APIresponse.js";
 import  jwt  from "jsonwebtoken";
-
-
+import { error } from "console";
 
 
 const genrateAccessTokenAndRefreshToken = async (id) => {
@@ -68,18 +67,22 @@ const registerUser = asyncHandler(async (req, res) => {
   let avaterLocalPath = "";
   let coverImageLocalPath = "";
 
-  if(res.files &&  Array.isArray(res.files?.avatar) && res.files.avatar.length > 0){
-    avaterLocalPath = res.files.avatar[0].path
+  if(req.files &&  Array.isArray(req.files?.avatar) && req.files.avatar.length > 0){
+    avaterLocalPath = req.files.avatar[0].path
   }
-  if(res.files &&  Array.isArray(res.files?.coverImage) && res.files.coverImage.length > 0){
-    coverImageLocalPath = res.files.coverImage[0].path
+  if(req.files &&  Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0){
+    coverImageLocalPath = req.files.coverImage[0].path
   }
+  // console.log(req.files)
+  // console.log(req.files.avatar[0])
+  // console.log(req.files.coverImage[0])
 
   // if(!avaterLocalPath){
   //   throw new APIerror(400, "Avater is required");
   // }
   // console.log("req.files", req.files )
   // console.log(avaterLocalPath,coverImageLocalPath);
+
 
 
   const avatar = (avaterLocalPath) ? await uplodeFileOnCloudinary(avaterLocalPath) : "not uploded";
@@ -132,13 +135,10 @@ const loginUser = asyncHandler(async (req, res) => {
   // user loging krava dege
   // jha bhi user ko authenticate karna hoge wha token se kar lege
 
-    // console.log(req);
-    const { username, email, password } = req.body
-  // const {email, password } = req.body
+  const { userName, email, password } = req.body
+  // console.log(userName, email)
 
-  // const {username} = req.body.username || null;
-
-  if(!username && !email){
+  if(!userName && !email){
     throw new APIerror(401, "username or email required");
   }
 
@@ -146,8 +146,14 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new APIerror(409, "enter a valid email");
   }
 
-
-  const  user = await User.findOne({ email });
+  if(!password){
+    throw new APIerror(409, "passwor is require");
+  }
+  let user ;
+  if(email)
+    user = await User.findOne({ email });
+  else 
+    user = await User.findOne({ userName });
 
 
   if(!user){
@@ -327,8 +333,8 @@ const updateAvatar = asyncHandler( async (req, res) => {
 
   let localfilePath;
 
-  if(res.files &&  Array.isArray(res.files?.avatar) && res.files.avatar.length > 0){
-    localfilePath = res.files.avatar[0].path
+  if(req.files &&  Array.isArray(req.files?.avatar) && req.files.avatar.length > 0){
+    localfilePath = req.files.avatar[0].path
   }
 
   if(!localfilePath){
@@ -336,13 +342,21 @@ const updateAvatar = asyncHandler( async (req, res) => {
   }
   const avatar = await uplodeFileOnCloudinary(localfilePath);
 
+  const oldFilePath = req.user.avatar;
+  console.log("avatar url : ", avatar.url); 
+  
+  if(oldFilePath ){
+    console.log("old file path", oldFilePath);
+    deleteFileOnCloudniry(oldFilePath);
+  }
   const user = await User.findByIdAndUpdate(
     usr_id,
     {
       $set: {
         avatar : avatar.url
       }
-    }
+    },
+    { new : true}
   )
   .select("-password -refreshToken -watchHistory");
 
@@ -364,14 +378,22 @@ const updateCoverImage = asyncHandler( async (req, res) => {
 
   let localfilePath;
 
-  if(res.files &&  Array.isArray(res.files?.avatar) && res.files.avatar.length > 0){
-    localfilePath = res.files.coverImage[0].path
+  if(req.files &&  Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0){
+    localfilePath = req.files.coverImage[0].path
   }
 
   if(!localfilePath){
-    throw new APIerror(400, "avtar not found")
+    throw new APIerror(400, "covrImage not found")
   }
-  const avatar = await uplodeFileOnCloudinary(localfilePath);
+  const coverImage = await uplodeFileOnCloudinary(localfilePath);
+
+
+  const oldFilePath = req.user.coverImage;
+  
+  if(oldFilePath ){
+    console.log("old file path", oldFilePath);
+    deleteFileOnCloudniry(oldFilePath);
+  }
 
   const user = await User.findByIdAndUpdate(
     usr_id,
@@ -379,6 +401,9 @@ const updateCoverImage = asyncHandler( async (req, res) => {
       $set: {
         avatar : coverImage.url
       }
+    },
+    {
+      new: true
     }
   )
   .select("-password -refreshToken -watchHistory");
@@ -396,11 +421,13 @@ const updateFullName = asyncHandler( async (req, res) => {
   const user_id = req.user?._id
   const fullName = req.body?.fullName;
 
+  console.log("req ki body : ",req.body);
+
   if(!user_id){
-    throw new APIerror(405, "user not found");
+    throw new APIerror(404, "user not found");
   }
   if(!fullName){
-    throw new APIerror(401, "full name is riquired");
+    throw new APIerror(409, "full name is riquired");
   }
 
   const user = await User.findByIdAndUpdate(
@@ -409,7 +436,8 @@ const updateFullName = asyncHandler( async (req, res) => {
       $set: {
       fullName
     }
-    }
+    },
+    {new : true}
   ) 
   .select("-password -refreshToken -watchHistory");
 

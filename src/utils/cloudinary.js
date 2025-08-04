@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs'
+import { APIerror } from '../utils/APIerror.js';
 
 // ye code surver se file ko cloud pe uplode kar dega
 
@@ -13,7 +14,7 @@ async function uplodeFileOnCloudinary(localfilePath) {
   });
 
   // Upload an image
-  // console.log("cloudinery",localfilePath)
+  console.log("cloudinery",localfilePath)
 
 
   // console.log("cloud_name:", process.env.CLOUDINARY_CLOUD_NAME);
@@ -39,7 +40,35 @@ async function uplodeFileOnCloudinary(localfilePath) {
 
 };
 
-export { uplodeFileOnCloudinary }
+
+ async function deleteFileOnCloudniry (url) {
+
+    // Configuration
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET // Click 'View API Keys' above to copy your API secret
+  });
+
+
+  //https://res.cloudinary.com/dixsg9gz0/image/upload/v1754142170/w7cbi2fpfcwys7k9tvdv.jpg
+  try {
+    const publicId = url.split('/').pop().split('.')[0];
+    console.log(publicId);
+    if(!publicId){
+      throw new APIerror(409, "public id not found in deleting url");
+    }
+  
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log(result);
+    return result;
+  
+  } catch (error) {
+    throw new APIerror(478, "old file not deleted on cloudinery somthin went wrong")
+  }
+}
+
+export { uplodeFileOnCloudinary, deleteFileOnCloudniry }
 
 
 /*
