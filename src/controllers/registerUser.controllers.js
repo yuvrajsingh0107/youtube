@@ -3,8 +3,8 @@ import { APIerror } from "../utils/APIerror.js"
 import { User } from '../models/user.models.js';
 import { deleteFileOnCloudniry, uplodeFileOnCloudinary } from "../utils/cloudinary.js"
 import { APIresponse } from "../utils/APIresponse.js";
-import  jwt  from "jsonwebtoken";
-import { error } from "console";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 
 const genrateAccessTokenAndRefreshToken = async (id) => {
@@ -12,17 +12,17 @@ const genrateAccessTokenAndRefreshToken = async (id) => {
   try {
 
     const user = await User.findById(id);
-  
-     const refreshToken = await user.genrateRefreshToken();
-     const accessToken = await user.genrateAssessToken();
-  
-      user.refreshToken = refreshToken;
-      await user.save({validateBeforeSave: false});
 
-      return {refreshToken , accessToken}
-    
+    const refreshToken = await user.genrateRefreshToken();
+    const accessToken = await user.genrateAssessToken();
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { refreshToken, accessToken }
+
   } catch (error) {
-    throw new APIerror(500,  "somthing wnt wrong login failed")
+    throw new APIerror(500, "somthing wnt wrong login failed")
   }
 
 
@@ -67,10 +67,10 @@ const registerUser = asyncHandler(async (req, res) => {
   let avaterLocalPath = "";
   let coverImageLocalPath = "";
 
-  if(req.files &&  Array.isArray(req.files?.avatar) && req.files.avatar.length > 0){
+  if (req.files && Array.isArray(req.files?.avatar) && req.files.avatar.length > 0) {
     avaterLocalPath = req.files.avatar[0].path
   }
-  if(req.files &&  Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0){
+  if (req.files && Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0) {
     coverImageLocalPath = req.files.coverImage[0].path
   }
   // console.log(req.files)
@@ -87,7 +87,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const avatar = (avaterLocalPath) ? await uplodeFileOnCloudinary(avaterLocalPath) : "not uploded";
   const coverImage = (coverImageLocalPath) ? await uplodeFileOnCloudinary(coverImageLocalPath) : "not uploded";
-  
+
   // console.log(avatar,coverImage)
   if (avaterLocalPath && !avatar) {
     throw new APIerror(500, "somthing went wrong in registring user : uplode file to cloudnery");
@@ -138,57 +138,57 @@ const loginUser = asyncHandler(async (req, res) => {
   const { userName, email, password } = req.body
   // console.log(userName, email)
 
-  if(!userName && !email){
+  if (!userName && !email) {
     throw new APIerror(401, "username or email required");
   }
 
-  if(email && !email.includes('@')){
+  if (email && !email.includes('@')) {
     throw new APIerror(409, "enter a valid email");
   }
 
-  if(!password){
+  if (!password) {
     throw new APIerror(409, "passwor is require");
   }
-  let user ;
-  if(email)
+  let user;
+  if (email)
     user = await User.findOne({ email });
-  else 
+  else
     user = await User.findOne({ userName });
 
 
-  if(!user){
+  if (!user) {
     throw new APIerror(409, "User not found");
   }
 
   const varifiedUser = await user.isPasswordCorrect(password);
 
-  if(!varifiedUser){
+  if (!varifiedUser) {
     throw new APIerror(400, "the password is incorrect");
   }
-  const {accessToken, refreshToken} = await genrateAccessTokenAndRefreshToken(user._id);
+  const { accessToken, refreshToken } = await genrateAccessTokenAndRefreshToken(user._id);
 
 
   const logedInUser = await User.findById(user._id).select("-password -refreshToken");
 
 
   const optins = {
-    httpOnly:true,
+    httpOnly: true,
     secure: true
   }
 
   return res
-  .status(200)
-  .cookie("accessToken", accessToken, optins)
-  .cookie("refreshToken", refreshToken, optins)
-  .json(
-    new APIresponse(
-      200,
-      {
-        data: accessToken, refreshToken, logedInUser
-      },
-      "user login sucessfully"
+    .status(200)
+    .cookie("accessToken", accessToken, optins)
+    .cookie("refreshToken", refreshToken, optins)
+    .json(
+      new APIresponse(
+        200,
+        {
+          data: accessToken, refreshToken, logedInUser
+        },
+        "user login sucessfully"
+      )
     )
-  )
 
 })
 
@@ -196,7 +196,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 
 
-const logoutUser = asyncHandler(async(req, res) => {
+const logoutUser = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
@@ -217,80 +217,80 @@ const logoutUser = asyncHandler(async(req, res) => {
   }
 
   return res
-  .status(200)
-  .clearCookie("accessToken", optins)
-  .clearCookie("refreshToken", optins)
-  .json(new APIresponse(200, {}, "user loged out sucessfully"))
+    .status(200)
+    .clearCookie("accessToken", optins)
+    .clearCookie("refreshToken", optins)
+    .json(new APIresponse(200, {}, "user loged out sucessfully"))
 
 })
 
 
 
-const  refreshAccessToker = asyncHandler( async (req, res) => {
+const refreshAccessToker = asyncHandler(async (req, res) => {
   const recivedRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
-  
-  if(!recivedRefreshToken){
+
+  if (!recivedRefreshToken) {
     throw new APIerror(409, "user is not unauthorised");
   }
 
-  const decodedUser = jwt.verify(recivedRefreshToken, process.env.REFRESH_TOKEN_SECRET );
+  const decodedUser = jwt.verify(recivedRefreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-  if(!decodedUser){
+  if (!decodedUser) {
     throw new APIerror(500, "unable to process refresh token ");
   }
 
-  const user  = await User.findById(decodedUser._id);
+  const user = await User.findById(decodedUser._id);
 
-  if(!user){
+  if (!user) {
     throw new APIerror(407, "invalid refresh token")
   }
 
-  if(recivedRefreshToken !== user.refreshToken){
+  if (recivedRefreshToken !== user.refreshToken) {
     throw new APIerror(409, "token is sexpired user");
   }
 
-  const {refreshToken , accessToken} = await genrateAccessTokenAndRefreshToken(user._id);
+  const { refreshToken, accessToken } = await genrateAccessTokenAndRefreshToken(user._id);
 
   const logedInUser = await User.findById(user._id).select("-password -refreshToken");
 
-   const optins = {
-    httpOnly:true,
+  const optins = {
+    httpOnly: true,
     secure: true
   }
 
   return res
-  .status(200)
-  .cookie("accessToken", accessToken, optins)
-  .cookie("refreshToken", refreshToken, optins)
-  .json(
-    new APIresponse(
-      200,
-      {
-        data: accessToken, refreshToken, logedInUser
-      },
-      "user login sucessfully"
+    .status(200)
+    .cookie("accessToken", accessToken, optins)
+    .cookie("refreshToken", refreshToken, optins)
+    .json(
+      new APIresponse(
+        200,
+        {
+          data: accessToken, refreshToken, logedInUser
+        },
+        "user login sucessfully"
+      )
     )
-  )
 
   // ager user ka token db ke token se match ho jai to 
   // decode refresh token 
   // get the user of thet id
   // match the user token wiht recived token
   // if same
-    // genrate new access and refresh token 
-    // update refresh tokken in db
-    // set both in cookies at user end
-    // login user
+  // genrate new access and refresh token 
+  // update refresh tokken in db
+  // set both in cookies at user end
+  // login user
   // nhi to
-    // send error msg 
+  // send error msg 
 })
 
 
 
 const changePassword = asyncHandler(async (req, res) => {
-  const {oldPassword, newPassword} = req.body;
+  const { oldPassword, newPassword } = req.body;
 
-  if(!oldPassword || !newPassword){
+  if (!oldPassword || !newPassword) {
     throw new APIerror(409, "both fildes are requrired");
   }
 
@@ -300,52 +300,52 @@ const changePassword = asyncHandler(async (req, res) => {
 
 
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-  if(!isPasswordCorrect){
+  if (!isPasswordCorrect) {
     throw new APIerror(405, "unauthorized user ");
   }
 
 
   user.password = newPassword;
-  user.save({validateBeforeSave: false});
+  user.save({ validateBeforeSave: false });
 
   return res
-  .status(200)
-  .json(
-    new APIresponse(200,{}, "password change sucessfully")
-  )
+    .status(200)
+    .json(
+      new APIresponse(200, {}, "password change sucessfully")
+    )
 
 })
 
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
-  .status(200)
-  .json(new APIresponse(200, req.user, "user fatch sucessfully"));
+    .status(200)
+    .json(new APIresponse(200, req.user, "user fatch sucessfully"));
 
 })
 
-const updateAvatar = asyncHandler( async (req, res) => {
+const updateAvatar = asyncHandler(async (req, res) => {
   const usr_id = req.user?._id;
 
-  if(!usr_id){
+  if (!usr_id) {
     throw new APIerror(400, "aunouthorized user");
   }
 
   let localfilePath;
 
-  if(req.files &&  Array.isArray(req.files?.avatar) && req.files.avatar.length > 0){
+  if (req.files && Array.isArray(req.files?.avatar) && req.files.avatar.length > 0) {
     localfilePath = req.files.avatar[0].path
   }
 
-  if(!localfilePath){
+  if (!localfilePath) {
     throw new APIerror(400, "avtar not found")
   }
   const avatar = await uplodeFileOnCloudinary(localfilePath);
 
   const oldFilePath = req.user.avatar;
-  console.log("avatar url : ", avatar.url); 
-  
-  if(oldFilePath ){
+  console.log("avatar url : ", avatar.url);
+
+  if (oldFilePath) {
     console.log("old file path", oldFilePath);
     deleteFileOnCloudniry(oldFilePath);
   }
@@ -353,44 +353,44 @@ const updateAvatar = asyncHandler( async (req, res) => {
     usr_id,
     {
       $set: {
-        avatar : avatar.url
+        avatar: avatar.url
       }
     },
-    { new : true}
+    { new: true }
   )
-  .select("-password -refreshToken -watchHistory");
+    .select("-password -refreshToken -watchHistory");
 
   return res
-  .status(200)
-  .json(
-    new APIresponse(200, user, "avatar updated sucessfully")
-  )
+    .status(200)
+    .json(
+      new APIresponse(200, user, "avatar updated sucessfully")
+    )
 
 })
 
 
-const updateCoverImage = asyncHandler( async (req, res) => {
+const updateCoverImage = asyncHandler(async (req, res) => {
   const usr_id = req.user?._id;
 
-  if(!usr_id){
+  if (!usr_id) {
     throw new APIerror(400, "aunouthorized user");
   }
 
   let localfilePath;
 
-  if(req.files &&  Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0){
+  if (req.files && Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0) {
     localfilePath = req.files.coverImage[0].path
   }
 
-  if(!localfilePath){
+  if (!localfilePath) {
     throw new APIerror(400, "covrImage not found")
   }
   const coverImage = await uplodeFileOnCloudinary(localfilePath);
 
 
   const oldFilePath = req.user.coverImage;
-  
-  if(oldFilePath ){
+
+  if (oldFilePath) {
     console.log("old file path", oldFilePath);
     deleteFileOnCloudniry(oldFilePath);
   }
@@ -399,34 +399,34 @@ const updateCoverImage = asyncHandler( async (req, res) => {
     usr_id,
     {
       $set: {
-        avatar : coverImage.url
+        avatar: coverImage.url
       }
     },
     {
       new: true
     }
   )
-  .select("-password -refreshToken -watchHistory");
+    .select("-password -refreshToken -watchHistory");
 
   return res
-  .status(200)
-  .json(
-    new APIresponse(200, user, "coverimage updated sucessfully")
-  )
+    .status(200)
+    .json(
+      new APIresponse(200, user, "coverimage updated sucessfully")
+    )
 
 })
 
 
-const updateFullName = asyncHandler( async (req, res) => {
+const updateFullName = asyncHandler(async (req, res) => {
   const user_id = req.user?._id
   const fullName = req.body?.fullName;
 
-  console.log("req ki body : ",req.body);
+  console.log("req ki body : ", req.body);
 
-  if(!user_id){
+  if (!user_id) {
     throw new APIerror(404, "user not found");
   }
-  if(!fullName){
+  if (!fullName) {
     throw new APIerror(409, "full name is riquired");
   }
 
@@ -434,27 +434,152 @@ const updateFullName = asyncHandler( async (req, res) => {
     user_id,
     {
       $set: {
-      fullName
-    }
+        fullName
+      }
     },
-    {new : true}
-  ) 
-  .select("-password -refreshToken -watchHistory");
+    { new: true }
+  )
+    .select("-password -refreshToken -watchHistory");
 
   return res.status(200)
+    .json(
+      new APIresponse(200, user, "fullname updated sucess fully")
+    )
+})
+
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { userName } = req.params?.userName;
+  if (!userName) {
+    throw new APIerror(404, "channel name is required");
+  }
+
+
+  // aggregate ak method he jisne nested quries likh sakte he first quri ak result dusri quri me pass hot HE 
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        userName: userName.toLowerCase()
+      }
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        as: "subscribers",
+        localField: "_id",
+        foreignField: "channel"
+      }
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        as: "suscribedChannel",
+        localField: "_id",
+        foreignField: "subscriber"
+      }
+    },
+    {
+      $addFields: {
+        subscriberCount: {
+          $size: "$subscriber"
+        },
+        subscribedChannelCount: {
+          $size: "$suscribedChannel"
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscrider"] },
+            then: true,
+            else: false
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        userName,
+        email,
+        fullName,
+        avatar,
+        coverImage,
+        isSubscribed,
+        subscribedChannelCount,
+        subscriberCount
+      }
+    }
+  ])
+
+  if (!channel.length) {
+    throw new APIerror(404, "channel not fount");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new APIresponse(200, channel[0], "channel fatched successfully")
+    )
+})
+
+
+const getUserWatchHistory = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const user = User.aggregate([
+    {
+      $match: {
+        _id: mongoose.Schema.Types.ObjectId(userId)
+      },
+    }, {
+      $lookup: {
+        from: "videos",
+        as: "watchHistory",
+        localField: "watchHistory",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              as: "owner",
+              foreignField: "_id",
+              localField: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                    avatar: 1,
+                    userName: 1
+                  }
+                }
+              ]
+            },
+            $addFields: {
+              owner:{
+                $first: "$owner"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ])
+
+  return res
+  .status(200)
   .json(
-    new APIresponse(200, user, "fullname updated sucess fully")
+    new APIresponse(200,user[0].watchHistory)
   )
 })
 
-export { 
-    registerUser,
-    loginUser ,
-    logoutUser,
-    refreshAccessToker,
-    changePassword,
-    getCurrentUser, 
-    updateAvatar, 
-    updateCoverImage,
-    updateFullName
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToker,
+  changePassword,
+  getCurrentUser,
+  updateAvatar,
+  updateCoverImage,
+  updateFullName,
+  getUserChannelProfile,
+  getUserWatchHistory
 }
