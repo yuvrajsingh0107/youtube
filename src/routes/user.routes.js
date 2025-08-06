@@ -11,7 +11,7 @@ import {loginUser,
        getCurrentUser, 
        changePassword, 
        getUserChannelProfile, 
-       getUserWatchHistory} from '../controllers/registerUser.controllers.js';
+       getUserWatchHistory} from '../controllers/registerUser.controller.js';
 import { upload } from "../middlewares/multer.middelwear.js"
 import { verifyJWT } from "../middlewares/auth.middelwear.js";
 const router = Router();

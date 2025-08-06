@@ -1,15 +1,33 @@
 import  { Router } from 'express';
-import router from './user.routes';
+import { verifyJWT } from '../middlewares/auth.middelwear.js';
+import { upload } from '../middlewares/multer.middelwear.js';
+import { uplodeVideo } from '../controllers/video.controller.js';
 
 const router = Router()
 
 // uplode video
-// watch or riquest
+router.route("/uplodeVideo").post(
+  verifyJWT,
+  upload.fields([
+    {
+      name : "video",
+      mxaCount: 1
+    },
+    {
+      name: "thumbnail",
+      mxaCount: 1
+    }
+  ]),
+  uplodeVideo
+)
+// getVedioByid ->> play
+router.route("/getVideo").get(
+  
+)
 // delet video
-// like video
 // add comment
-// add to playlist
-
+// FeedVedio
+// 
 
 
 export default router
