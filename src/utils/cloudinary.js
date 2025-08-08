@@ -41,7 +41,7 @@ async function uplodeFileOnCloudinary(localfilePath) {
 };
 
 
- async function deleteFileOnCloudniry (url) {
+ async function deleteFileOnCloudniry (url, resource_type = "image") {
 
     // Configuration
   cloudinary.config({
@@ -59,7 +59,7 @@ async function uplodeFileOnCloudinary(localfilePath) {
       throw new APIerror(409, "public id not found in deleting url");
     }
   
-    const result = await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(publicId,{resource_type});
     console.log(result);
     return result;
   

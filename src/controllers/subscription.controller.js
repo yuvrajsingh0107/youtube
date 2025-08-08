@@ -1,0 +1,196 @@
+import mongoose from "mongoose";
+import { APIerror } from "../utils/APIerror.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import {Subscription} from '../models/subscription.models.js';
+import { APIresponse } from "../utils/APIresponse.js";
+
+
+// toggel subscription 
+const toggelSubscription = asyncHandler(async (req, res) => {
+  // user --> loged in
+  const userId = req.user?._id;
+  if(!userId){
+    throw new APIerror(445, "user not logged in")
+  }
+
+  const user_id = new mongoose.Types.ObjectId(userId);
+
+
+  // channel 
+  const channelId = req.params?.channel;
+  if(!channelId){
+    throw new APIerror(409, "channel (user) id is missing");
+  }
+
+  const channel_id = new mongoose.Types.ObjectId(channelId);
+
+
+  async function help () {
+    const subscription = await Subscription.findOne({
+      subscriber: user_id,
+      channel: channel_id
+    })
+
+    console.log("subscription : ", subscription)
+
+    if(!subscription){
+      return {
+        isSubscribed: false,
+        subscription_id: null
+      }
+    }else{
+      return {
+        isSubscribed: true,
+        subscription_id: subscription._id
+      }
+    }
+  }
+
+  const {isSubscribed , subscription_id} = await help()
+  // console.log("test : ",await help())
+  console.log("isSub : ",isSubscribed, "subscriptinon_id : ", subscription_id)
+
+  if(isSubscribed){
+    const removedSunbscription = await Subscription.findByIdAndDelete(subscription_id)
+
+    console.log("removed sub : ", removedSunbscription)
+    if(removedSunbscription){
+      return res
+      .status(200)
+      .json(
+        new APIresponse(200, removedSunbscription ,"subscriber removed sucessfully")
+      )
+    }else{
+      return res
+      .status(500)
+      .json(
+        new APIresponse(500, "failed to remove subsceribe")
+      )
+    }
+  }else{
+    const newSubscription = await Subscription.create({
+      subscriber: user_id,
+      channel: channel_id
+    })
+
+    if(newSubscription){
+      return res
+      .status(200)
+      .json(
+        new APIresponse(200, newSubscription, "channel subscribed sucessfully")
+      )
+    }
+  }
+  
+
+
+
+  // if(subscribed ) then unsuscribe
+  // else subsscribe
+})
+
+// get user channel subscribers
+const getSubscribers = asyncHandler( async (req, res) => {
+  const channelId = req.user?._id;
+  if(!channelId){
+    throw new APIerror(409, " unauthorized riquest user not login get subscriber");
+  }
+
+  const channel_id = new mongoose.Types.ObjectId(channelId);
+
+const subscribers = await Subscription.aggregate([
+  {
+    $match: {
+      channel: channel_id,
+    },
+  },
+  {
+    $lookup: {
+      from: "users",
+      localField: "subscriber",
+      foreignField: "_id",
+      as: "subscriberInfo",
+      pipeline: [
+        {
+          $project: {
+            userName: 1,
+            email: 1,
+            fullName: 1,
+            _id: 1,
+            avatar: 1
+          }
+        }
+      ]
+    }
+  },
+  {
+    $unwind: "$subscriberInfo"
+  }
+]);
+
+
+  console.log("subscriberd : ", subscribers)
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200, subscribers, "sucess")
+  )
+
+})
+
+// get all user subscribed channel
+const getSubscribedChannels = asyncHandler( async (req, res) => {
+  const userId = req.user?._id;
+  if(!userId){
+    throw new APIerror(400, "unauthorize use : uaer not login :: get subscribed channels");
+  }
+
+  const user_id = new mongoose.Types.ObjectId(userId);
+  console.log("uid : ",user_id)
+
+  const subscribedChannels = await Subscription.aggregate(
+    [
+      {
+        $match:{
+          subscriber: user_id
+        }
+      },
+      {
+        $lookup:{
+          as: "channelInfo",
+          from: "users",
+          localField: "channel",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                avatar: 1,
+                fullName: 1,
+                userName: 1,
+                email: 1,
+                _id: 1
+              }
+            }
+          ] 
+        }
+      },
+      // {
+      //   $unwind: "$channelinfo"
+      // }
+    ]
+  )
+
+console.log("channels : ",subscribedChannels)
+
+  if(!subscribedChannels){
+    throw new APIerror(404, "not found ")
+  }
+
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200, subscribedChannels, "sucess")  
+  )
+})
+
+export {toggelSubscription , getSubscribers , getSubscribedChannels}

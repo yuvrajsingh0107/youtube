@@ -5,13 +5,21 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { APIerror } from '../utils/APIerror.js';
 import { APIresponse } from '../utils/APIresponse.js';
 // import cloudnery from '../utils/cloudinary.js';
-import { uplodeFileOnCloudinary } from '../utils/cloudinary.js';
+import { deleteFileOnCloudniry, uplodeFileOnCloudinary } from '../utils/cloudinary.js';
 import mongoose from "mongoose";
 // import getVideoDurationInSeconds from "get-video-duration"
 // import fs from "fs";
 
 
 // panding he abhi aggrigation pipeline
+
+
+
+// get all videos based on querie
+const getAllVedio = asyncHandler( async (req, res) => {
+  
+})
+
 
 
 const uplodeVideo = asyncHandler(async (req, res) => {
@@ -48,7 +56,6 @@ const uplodeVideo = asyncHandler(async (req, res) => {
   if (!thumbnail?.url) {
     throw new APIerror(500, "faild to uplode thumbnail to cloudinery");
   }
-  const duration = video.duration;
 
 
   const createdVideo = await Video.create({
@@ -78,7 +85,7 @@ const uplodeVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
   const  videoId  = req.query?.videoId;
   const video_id = new mongoose.Types.ObjectId(videoId);
-  console.log(req.query)
+  // console.log(req.query)
   if (!videoId) {
     throw new APIerror(404, " video ID not recived");
   }
@@ -173,7 +180,52 @@ const getVideoById = asyncHandler(async (req, res) => {
     )
 })
 
-export { uplodeVideo , getVideoById }
+// delet video
+
+const deleteVideo = asyncHandler( async (req, res) => {
+  const userId = req.user?._id;
+  if(!userId){
+    throw new APIerror(409, "unauthorized riquest can not delete video wthiout login");
+  }
+
+  const user_id = new mongoose.Types.ObjectId(userId);
+
+  const videoId = req.params?.video;
+
+  if(!videoId){
+    throw new APIerror(409, "video id not recived");
+  }
+
+  const video_id = new mongoose.Types.ObjectId(videoId);
+
+  const video = await Video.findById(video_id);
+
+  // delete from cloudinery
+  console.log("video : ",video)
+
+  const deleteRisponceByCloudinery = await deleteFileOnCloudniry(video.videoFile,"video");
+  const deleteThumbnailRisFromCloudinery = await deleteFileOnCloudniry(video.thumbnail)
+  console.log("cloudinery responce : ", deleteRisponceByCloudinery)
+  console.log("cloudinery responce : ", deleteThumbnailRisFromCloudinery)
+
+  if(video.owner.equals(user_id)){
+    const deleteVideo = await Video.findByIdAndDelete(video_id);
+    
+    if(!deleteVideo){
+      throw new APIerror(500, "failed to delete the video");
+    }
+
+    return res
+    .status(200)
+    .json(
+      new APIresponse(200, deleteVideo, "this video is deleted sucessfully")
+    )
+  }else{
+    throw new APIerror(409, "user is not authorized to delete this video");
+  }
+})
+
+export { uplodeVideo , getVideoById , deleteVideo}
 
 /* 
 {"_id":{"$oid":"6893919b26335cc1f0f1e7eb"},"videoFile":"http://res.cloudinary.com/dixsg9gz0/video/upload/v1754501521/rvlhnilvsynwhkmtvdw6.mp4","thumbnail":"http://res.cloudinary.com/dixsg9gz0/image/upload/v1754501529/cjsgaobrb1vqfal7ztn8.png","owner":{"$oid":"6893738172a24b3650db7088"},"title":"test video","description":"first test","duration":{"$numberDouble":"8.783278"},"views":{"$numberInt":"0"},"isPublic":true,"__v":{"$numberInt":"0"}}

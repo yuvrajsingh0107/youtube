@@ -422,7 +422,7 @@ const updateFullName = asyncHandler(async (req, res) => {
   const user_id = req.user?._id
   const fullName = req.body?.fullName;
 
-  console.log("req ki body : ", req.body);
+  // console.log("req ki body : ", req.body);
 
   if (!user_id) {
     throw new APIerror(404, "user not found");

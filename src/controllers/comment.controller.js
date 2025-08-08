@@ -66,4 +66,48 @@ const deletCommet = asyncHandler( async (req, res) => {
 
 })
 
-export { addComment , deletCommet}
+// update comment
+const updateComment = asyncHandler( async (req, res) => {
+
+  const commentId = req.params?.commentId;
+  if(!commentId){
+    throw new APIerror(409, " comment is missing");
+  }
+  const commet_id = new mongoose.Types.ObjectId(commentId);
+
+  const userID = req.user?._id;
+
+  if(!userID){
+    throw new APIerror(409, "user id is missing");
+  }
+
+  const user_id = new mongoose.Types.ObjectId(userID);
+
+  const content = req.body?.content;
+
+  if(!content){
+    throw new APIerror(405, " content filed is riquire");
+  }
+  
+  const comment = await Comment.findById(commet_id);
+  console.log("comment : ",comment)
+
+  if(comment.owner.equals(user_id)){
+    const updatedcomment = await Comment.findByIdAndUpdate(commet_id,{content});
+
+    return res
+    .status(200)
+    .json(
+      new APIresponse(200, updatedcomment, "comment updated sucessfully")
+    )
+  }else{
+    throw new APIerror(412, "unauthorized riquest user is not owner of comment")
+  }
+
+
+
+
+})
+
+export { addComment , deletCommet , updateComment}
+// get all comments on a video 

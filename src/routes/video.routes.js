@@ -1,7 +1,7 @@
 import  { Router } from 'express';
 import { verifyJWT } from '../middlewares/auth.middelwear.js';
 import { upload } from '../middlewares/multer.middelwear.js';
-import { getVideoById, uplodeVideo } from '../controllers/video.controller.js';
+import { getVideoById, uplodeVideo , deleteVideo } from '../controllers/video.controller.js';
 
 const router = Router()
 
@@ -23,11 +23,20 @@ router.route("/uplodeVideo").post(
 // getVedioByid ->> play
 router.route("/getVideo").get(
   getVideoById
-  
 )
+
+
 // delet video
-// add comment
+router.route("/delete/:video").delete(
+  verifyJWT,
+  deleteVideo
+)
+
 // FeedVedio
+// abi to bas created at ka base pe 10 videos 
+ 
+
+
 // 
 
 
