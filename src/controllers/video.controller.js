@@ -6,11 +6,14 @@ import { APIerror } from '../utils/APIerror.js';
 import { APIresponse } from '../utils/APIresponse.js';
 // import cloudnery from '../utils/cloudinary.js';
 import { uplodeFileOnCloudinary } from '../utils/cloudinary.js';
+import mongoose from "mongoose";
 // import getVideoDurationInSeconds from "get-video-duration"
 // import fs from "fs";
 
 
 // panding he abhi aggrigation pipeline
+
+
 const uplodeVideo = asyncHandler(async (req, res) => {
 
   const user = req.user;
@@ -73,8 +76,9 @@ const uplodeVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-  const { videoId } = req.params?.videoId;
-  console.log(req.params)
+  const  videoId  = req.query?.videoId;
+  const video_id = new mongoose.Types.ObjectId(videoId);
+  console.log(req.query)
   if (!videoId) {
     throw new APIerror(404, " video ID not recived");
   }
@@ -82,7 +86,24 @@ const getVideoById = asyncHandler(async (req, res) => {
   const video = await Video.aggregate([
     {
       $match: {
-        _id: videoId
+        _id: video_id
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        as: "videoOwner",
+        localField: "owner",
+        foreignField: "_id",
+        pipeline:[{
+          $project: {
+          userName: 1,
+          _id: 1,
+          fullName: 1,
+          email: 1,
+          avatar: 1
+
+        }}]
       }
     },
     {
@@ -91,40 +112,68 @@ const getVideoById = asyncHandler(async (req, res) => {
         from: "likes",
         localField: "_id",
         foreignField: "video"
-
       }
-    }, {
+    }, 
+    {
       $lookup: {
+        // isme comments dhunde 
         as: "comments",
         from: "comments",
         localField: "_id",
-        foreignField: "video"
-      }
-    },{
-      $addFields: {
-        likes: {
-          $size: "$likes"
-        },
-        comments: "$comments"
+        foreignField: "video",
+        pipeline: [
+          {
+            // isme ai user dundene har comment 
+            $lookup: {
+              from: "users",
+              as: "user",
+              localField: "owner",
+              foreignField: "_id",
+              pipeline: [
+                // iseme ai fildes chatne
+                {
+                  $project: {
+                    fullName: 1,
+                    avatar: 1,
+                    userName: 1
+                  }
+                }
+              ]
+            }
+          },
+          {
+            // yha mile user jike [0] index pe he object jisme he user details
+            // to ise frountend ke liye thoda ssan kar dete he
+            $addFields: {
+              // over write user 
+              user: {
+                // user ko over write kar do or ak object dat do user ka 0 index pe he
+                $first: "$user"
+              }
+            }
+          } 
+        ]
+        // yha pe mil gaya comment with use
       }
     },
     {
-      $project: {
-        videoFile,
-        thumbnail,
-        owner,
-
+      $addFields: {
+        likes : {
+          $size: "$likes"
+        }
       }
     }
   ])
 
+  console.log("video : ", video[0])
+
   return res.status(200)
     .json(
-      new APIresponse(200, video, "video fetch sucessfully")
+      new APIresponse(200, video[0], "video fetch sucessfully")
     )
 })
 
-export { uplodeVideo }
+export { uplodeVideo , getVideoById }
 
 /* 
 {"_id":{"$oid":"6893919b26335cc1f0f1e7eb"},"videoFile":"http://res.cloudinary.com/dixsg9gz0/video/upload/v1754501521/rvlhnilvsynwhkmtvdw6.mp4","thumbnail":"http://res.cloudinary.com/dixsg9gz0/image/upload/v1754501529/cjsgaobrb1vqfal7ztn8.png","owner":{"$oid":"6893738172a24b3650db7088"},"title":"test video","description":"first test","duration":{"$numberDouble":"8.783278"},"views":{"$numberInt":"0"},"isPublic":true,"__v":{"$numberInt":"0"}}

@@ -28,4 +28,4 @@ const schema = new Schema(
   }
 )
 
-export const Playlist = mongoose.Model("Playlist", schema);
+export const Playlist = mongoose.model("Playlist", schema);

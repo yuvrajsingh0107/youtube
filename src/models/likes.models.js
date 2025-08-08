@@ -25,4 +25,4 @@ const schema = new Schema(
   }
 )
 
-export const Like = mongoose.Model("Like",  schema)
+export const Like = mongoose.model("Like",  schema)
