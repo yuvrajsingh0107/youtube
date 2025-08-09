@@ -14,11 +14,84 @@ import mongoose from "mongoose";
 // panding he abhi aggrigation pipeline
 
 
+// get video feed
+const getFeed = asyncHandler(async (req, res) =>{ 
+  const page = req.query?.page || 1;
+  const sikpValue = (page - 1) * 6;
+  const videos = await Video.find({}).skip(sikpValue).limit(6);
+  console.log("videos : ", videos);
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200, videos, "video feed fetched sucess fully")
+  )
+})
+
 
 // get all videos based on querie
-const getAllVedio = asyncHandler( async (req, res) => {
-  
+const getSearchResult = asyncHandler( async (req, res) => {
+  // console.log(req.query.search);
+  const query = req.query.search?.split(" ");
+  if(!query){
+    throw new APIerror(409, "search qury is messing ");
+  }
+  console.log("queris : ", query)
+
+  const videos =await Video.aggregate([
+    {
+      $search: {
+        text: {
+          query: query,
+          path: "title"
+        }
+      }
+    },
+    {
+      $limit: 6
+    },
+  {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerInfo",
+        pipeline: [{
+          $project: {
+            userName: 1,
+          _id: 1,
+          fullName: 1,
+          email: 1,
+          avatar: 1
+          }
+        }]
+      }
+    },
+
+    {
+      $project:{
+        videoFile: 1,
+        thumbnail: 1,
+        title: 1,
+        ownerInfo: 1,
+        owner: 1,
+
+        duration: 1,
+        views: 1
+      }
+    }
+
+  ])
+
+
+ 
+  return res
+  .status(200)
+  .json(
+    new APIresponse(200, videos, "serach result fetched sucess fully")
+)
 })
+
+
 
 
 
@@ -75,10 +148,6 @@ const uplodeVideo = asyncHandler(async (req, res) => {
       new APIresponse(200, createdVideo, "video uploded sucessfully")
 
     )
-
-
-
-
 
 })
 
@@ -225,7 +294,7 @@ const deleteVideo = asyncHandler( async (req, res) => {
   }
 })
 
-export { uplodeVideo , getVideoById , deleteVideo}
+export { getFeed, getSearchResult, uplodeVideo , getVideoById , deleteVideo}
 
 /* 
 {"_id":{"$oid":"6893919b26335cc1f0f1e7eb"},"videoFile":"http://res.cloudinary.com/dixsg9gz0/video/upload/v1754501521/rvlhnilvsynwhkmtvdw6.mp4","thumbnail":"http://res.cloudinary.com/dixsg9gz0/image/upload/v1754501529/cjsgaobrb1vqfal7ztn8.png","owner":{"$oid":"6893738172a24b3650db7088"},"title":"test video","description":"first test","duration":{"$numberDouble":"8.783278"},"views":{"$numberInt":"0"},"isPublic":true,"__v":{"$numberInt":"0"}}
