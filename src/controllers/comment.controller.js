@@ -33,7 +33,7 @@ const addComment = asyncHandler( async (req, res) => {
 })
 
 const deletCommet = asyncHandler( async (req, res) => {
-  const commentId = new mongoose.Types.ObjectId(req.query?._id);
+  const commentId = new mongoose.Types.ObjectId(req.params?._id);
   if(!commentId){
     throw new APIerror(400, "comment id is missing")
   }

@@ -12,9 +12,9 @@ router.route("/addComment").post(
   addComment
   // tested
 )
-
+ 
 // deleteComment
-router.route("/deletCommet").delete(
+router.route("/deleteComment/:_id").delete(
   upload.none(),
   verifyJWT,
   deletCommet

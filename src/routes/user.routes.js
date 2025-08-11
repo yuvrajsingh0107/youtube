@@ -36,13 +36,13 @@ router.route("/regiseter").post(
   registerUser
 )
 
-router.route("/getUseer").get(verifyJWT,getCurrentUser)
+router.route("/getUser").get(verifyJWT,getCurrentUser)
 
 router.route("/login").post(upload.none(),loginUser);
 
 router.route("/logout").post(verifyJWT , logoutUser);
 
-router.route("refresh-token").post(refreshAccessToker)
+router.route("/refresh-token").patch(refreshAccessToker)
 
 router.route("/updateAvatar").patch(
   verifyJWT,
@@ -69,10 +69,10 @@ router.route("/updateCoverImage").patch(
 router.route("/updateFullName").patch(  upload.none(),  verifyJWT,  updateFullName)
 
 
-router.route("/changePassword").post(  upload.none(),  verifyJWT,  changePassword)
+router.route("/changePassword").patch(  upload.none(),  verifyJWT,  changePassword)
 
 
-router.route("/c/:userName").get(verifyJWT, getUserChannelProfile)
+router.route("/channel/:userName").get(verifyJWT, getUserChannelProfile)
 
 router.route("/history").get(verifyJWT, getUserWatchHistory);
 

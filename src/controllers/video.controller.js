@@ -18,7 +18,46 @@ import mongoose from "mongoose";
 const getFeed = asyncHandler(async (req, res) =>{ 
   const page = req.query?.page || 1;
   const sikpValue = (page - 1) * 6;
-  const videos = await Video.find({}).skip(sikpValue).limit(6);
+  // const videos = await Video.find({}).skip(sikpValue).limit(6);
+  const videos = await Video.aggregate([
+    {
+      $skip: sikpValue,
+    },
+    {
+      $limit: 6
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerInfo",
+        pipeline: [{
+          $project: {
+            userName: 1,
+            _id: 1,
+            fullName: 1,
+            email: 1,
+            avatar: 1
+          }
+        }]
+      }
+    },
+    {
+      $project:{
+        videoFile: 1,
+        thumbnail: 1,
+        title: 1,
+        ownerInfo: 1,
+        owner: 1,
+        createdAt: 1,
+        duration: 1,
+        views: 1,
+        _id: 1
+      }
+    }
+  ]
+)
   console.log("videos : ", videos);
   return res
   .status(200)
@@ -152,7 +191,7 @@ const uplodeVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-  const  videoId  = req.query?.videoId;
+  const  videoId  = req.params?.videoId;
   const video_id = new mongoose.Types.ObjectId(videoId);
   // console.log(req.query)
   if (!videoId) {

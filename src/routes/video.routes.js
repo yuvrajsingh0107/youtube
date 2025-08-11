@@ -8,7 +8,7 @@ const router = Router()
 // uplode video
 router.route("/uplodeVideo").post(
   verifyJWT,
-  upload.fields([
+  upload.fields([ 
     {
       name : "video",
       mxaCount: 1
@@ -21,7 +21,7 @@ router.route("/uplodeVideo").post(
   uplodeVideo
 )
 // getVedioByid ->> play
-router.route("/getVideo").get(
+router.route("/getVideo/:videoId").get(
   getVideoById
 )
 

@@ -18,7 +18,7 @@ router.route("/getSubscribers").get(
   getSubscribers
 )
 // getAllSubscribers
-router.route("/getSubscribedChannel").get(
+router.route("/getSubscribedChannels").get(
   verifyJWT,
   getSubscribedChannels
 )
