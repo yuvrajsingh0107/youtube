@@ -9,16 +9,21 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
+app.use(cors({
+  origin: "http://localhost:5173", // your frontend URL
+  credentials: true               // allow cookies/auth headers
+}));
+
 
 // kam itne me hi chal jata he 
 // app.use(cors())
 
 // configure cors
-app.use(cors({
-  // cors_origin = *   ==> which meance accept all riquest
-  origin: process.env.CORS_ORIGIN,
-  credentials: true
-}))
+// app.use(cors({
+//   // cors_origin = *   ==> which meance accept all riquest
+//   origin: "*",
+//   credentials: true
+// }))
 
 // configure json to make exppress accept with json data of limit 16kb
 app.use(express.json({limit : '16kb'}))
