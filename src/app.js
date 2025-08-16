@@ -9,10 +9,20 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
-app.use(cors({
-  origin:[ "http://localhost:5173", "https://my-tube-rho-two.vercel.app/" ], // your frontend URL
-  credentials: true               // allow cookies/auth headers
-}));
+ const allowedOrigins = ['http://example.com', 'https://subdomain.example.com', 'http://localhost:3000'];
+
+        const corsOptions = {
+          origin: function (origin, callback) {
+            if (allowedOrigins.indexOf(origin) !== -1 || !origin) { // !origin allows same-origin requests
+              callback(null, true);
+            } else {
+              callback(new Error('Not allowed by CORS'));
+            }
+          },
+          credentials: true // If you need to allow cookies/credentials
+        };
+
+app.use(cors(corsOptions));
 
 
 // kam itne me hi chal jata he 
