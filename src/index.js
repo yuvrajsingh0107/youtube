@@ -20,7 +20,7 @@ connectDB()
     console.log(`error in connction surver to DB : ${error}`);
   })
   // ager DB connect ho jai to surver ko chalu kar do
-  app.listen(process.env.PORT || 5000 , () => {
+  app.listen(process.env.PORT || 8000 , () => {
     console.log(`listnig on port : ${process.env.PORT}  vist => http://localhost:${process.env.PORT}`);
     
   })

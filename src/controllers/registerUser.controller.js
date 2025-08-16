@@ -121,8 +121,6 @@ const registerUser = asyncHandler(async (req, res) => {
     new APIresponse(200, createdUser, "user created sucessfully")
   )
 
-
-
 })
 
 
