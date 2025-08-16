@@ -9,7 +9,7 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
- const allowedOrigins = ['http://example.com', 'https://subdomain.example.com', 'http://localhost:3000'];
+ const allowedOrigins = ['https://my-tube-rho-two.vercel.app', 'http://localhost:5173'];
 
         const corsOptions = {
           origin: function (origin, callback) {
