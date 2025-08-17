@@ -31,8 +31,8 @@ const toggelSubscription = asyncHandler(async (req, res) => {
       channel: channel_id
     })
 
-    console.log("subscription : ", subscription)
-
+    // console.log("subscription : ", subscription)
+    console.log("subscription sent successfully")
     if(!subscription){
       return {
         isSubscribed: false,

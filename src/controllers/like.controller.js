@@ -8,6 +8,7 @@ import { APIresponse } from "../utils/APIresponse.js";
 const toggelVideoLike = asyncHandler( async (req, res) => {
   // kisne kiya  *
   const user_id = new mongoose.Types.ObjectId(req.user?._id);
+  console.log("req.user => ",req.user)
   
   if(!user_id){
     throw new APIerror(409, "user Not login an authorized riquest");
@@ -38,7 +39,7 @@ const toggelVideoLike = asyncHandler( async (req, res) => {
     return res
     .status(200)
     .json(
-      new APIresponse(200, deletedLike , "like removd sucessfully")
+      new APIresponse(200, {like : false} , "like removd sucessfully")
     )
   }else{
     return res
@@ -61,7 +62,7 @@ const toggelVideoLike = asyncHandler( async (req, res) => {
     return res
     .status(200)
     .json(
-      new APIresponse(200, createdLike, "liked sucessfull")
+      new APIresponse(200, {like : true}, "liked sucessfull")
     )
   }
 

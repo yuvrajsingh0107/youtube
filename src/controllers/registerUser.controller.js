@@ -68,7 +68,7 @@ const registerUser = asyncHandler(async (req, res) => {
   let coverImageLocalPath = "";
 
   if (req.files && Array.isArray(req.files?.avatar) && req.files.avatar.length > 0) {
-    console.log(req.files.avatar)
+    // console.log(req.files.avatar)
     avaterLocalPath = req.files.avatar[0].path
   }
   if (req.files && Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0) {
@@ -254,7 +254,8 @@ const refreshAccessToker = asyncHandler(async (req, res) => {
 
   const optins = {
     httpOnly: true,
-    secure: true
+    secure: true,
+    sameSite: "none"
   }
 
   return res
@@ -390,7 +391,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
   const oldFilePath = req.user.coverImage;
 
   if (oldFilePath) {
-    console.log("old file path", oldFilePath);
+    // console.log("old file path", oldFilePath);
     deleteFileOnCloudniry(oldFilePath);
   }
 

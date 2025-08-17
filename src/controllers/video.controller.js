@@ -17,6 +17,7 @@ import mongoose from "mongoose";
 // get video feed
 const getFeed = asyncHandler(async (req, res) =>{ 
   const page = req.query?.page || 1;
+  
   const sikpValue = (page - 1) * 6;
   // const videos = await Video.find({}).skip(sikpValue).limit(6);
   const videos = await Video.aggregate([
@@ -58,7 +59,8 @@ const getFeed = asyncHandler(async (req, res) =>{
     }
   ]
 )
-  console.log("videos : ", videos);
+  // console.log("videos : ", videos);
+  console.log("videos send successfully")
   return res
   .status(200)
   .json(
@@ -229,48 +231,6 @@ const getVideoById = asyncHandler(async (req, res) => {
         foreignField: "video"
       }
     }, 
-    {
-      $lookup: {
-        // isme comments dhunde 
-        as: "comments",
-        from: "comments",
-        localField: "_id",
-        foreignField: "video",
-        pipeline: [
-          {
-            // isme ai user dundene har comment 
-            $lookup: {
-              from: "users",
-              as: "user",
-              localField: "owner",
-              foreignField: "_id",
-              pipeline: [
-                // iseme ai fildes chatne
-                {
-                  $project: {
-                    fullName: 1,
-                    avatar: 1,
-                    userName: 1
-                  }
-                }
-              ]
-            }
-          },
-          {
-            // yha mile user jike [0] index pe he object jisme he user details
-            // to ise frountend ke liye thoda ssan kar dete he
-            $addFields: {
-              // over write user 
-              user: {
-                // user ko over write kar do or ak object dat do user ka 0 index pe he
-                $first: "$user"
-              }
-            }
-          } 
-        ]
-        // yha pe mil gaya comment with use
-      }
-    },
     {
       $addFields: {
         likes : {

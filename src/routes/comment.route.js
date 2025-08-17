@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import {verifyJWT} from '../middlewares/auth.middelwear.js';
-import { addComment, deletCommet, updateComment } from '../controllers/comment.controller.js';
+import { getAllcomments, addComment, deletCommet, updateComment } from '../controllers/comment.controller.js';
 import { upload } from '../middlewares/multer.middelwear.js';
 
 const router = Router();
 
-// addComment 
+router.route("/getAllComments/:videoId/:page").get(
+  getAllcomments
+)
+
+// addComment  
 router.route("/addComment").post(
   upload.none(),
   verifyJWT,
