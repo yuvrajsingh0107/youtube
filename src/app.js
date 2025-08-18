@@ -7,9 +7,17 @@ import cors from "cors"
 import cookieParser from "cookie-parser";
 
 
+
+// app.use(cors({
+//   origin: "http://localhost:3000", // your frontend domain
+//   credentials: true                // 👈 allow cookies
+// }));
+
+
+
+
 const app = express();
 
- const allowedOrigins = ['https://my-tube-rho-two.vercel.app', 'http://localhost:5173'];
 
         const corsOptions = {
           origin: function (origin, callback) {
@@ -22,7 +30,15 @@ const app = express();
           credentials: true // If you need to allow cookies/credentials
         };
 
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: "https://my-tube-rho-two.vercel.app" ,
+  // origin: "http://localhost:5173", // for local developmentm 
+  credentials: true, // Allow cookies to be sent with requests
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allowed HTTP methods
+  allowedHeaders: "Content-Type, Authorization, x-client", // Allowed headers
+  preflightContinue: false, // Pass the CORS preflight response to the next handler
+  optionsSuccessStatus: 204 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+}));
 
 
 // kam itne me hi chal jata he 

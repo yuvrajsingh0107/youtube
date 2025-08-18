@@ -74,15 +74,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (req.files && Array.isArray(req.files?.coverImage) && req.files.coverImage.length > 0) {
     coverImageLocalPath = req.files.coverImage[0].path
   }
-  // console.log(req.files)
-  // console.log(req.files.avatar[0])
-  // console.log(req.files.coverImage[0])
 
-  // if(!avaterLocalPath){
-  //   throw new APIerror(400, "Avater is required");
-  // }
-  // console.log("req.files", req.files )
-  // console.log(avaterLocalPath,coverImageLocalPath);
 
 
 
@@ -109,7 +101,7 @@ const registerUser = asyncHandler(async (req, res) => {
   })
 
   const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password "
   )
 
 
@@ -170,9 +162,12 @@ const loginUser = asyncHandler(async (req, res) => {
   const logedInUser = await User.findById(user._id).select("-password -refreshToken");
 
 
+
   const optins = {
     httpOnly: true,
-    secure: true
+    secure: true,
+    sameSite: "None",          // MUST be "None" for cross-site
+    // domain: ".youtube-backend-ocha.onrender.com" // optional, for subdomains
   }
 
   return res
@@ -183,7 +178,7 @@ const loginUser = asyncHandler(async (req, res) => {
       new APIresponse(
         200,
         {
-          data: accessToken, refreshToken, logedInUser
+           accessToken, refreshToken, logedInUser
         },
         "user login sucessfully"
       )
