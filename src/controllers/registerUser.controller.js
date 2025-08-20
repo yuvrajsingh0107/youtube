@@ -53,11 +53,11 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!email.includes('@', 1)) {
     throw new APIerror(400, "invalid email")
   }
-  // console.log("userName : ", userName , " email : ",email)
+  console.log("userName : ", userName , " email : ",email)
 
   const usernameExsist = await User.find({ userName });
   const emailExsisit = await User.find({ email });
-  // console.log("username and email varification",usernameExsist, emailExsisit);
+  console.log("username and email varification",usernameExsist, emailExsisit);
   if (
     usernameExsist.length || emailExsisit.length
   ) {
