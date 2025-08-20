@@ -122,7 +122,7 @@ const getSearchResult = asyncHandler( async (req, res) => {
     }
 
   ])
-
+  console.log("videos : ", videos)
 
  
   return res

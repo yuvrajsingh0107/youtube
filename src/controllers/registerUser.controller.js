@@ -104,13 +104,15 @@ const registerUser = asyncHandler(async (req, res) => {
     "-password "
   )
 
+    const { accessToken, refreshToken } = await genrateAccessTokenAndRefreshToken(user._id);
+
 
   if (!createdUser) {
     throw new APIerror(500, "somthing went wrong : creating user in DataBase");
   }
 
   return res.status(201).json(
-    new APIresponse(200, createdUser, "user created sucessfully")
+    new APIresponse(200, {accessToken, refreshToken,createdUser}, "user created sucessfully")
   )
 
 })

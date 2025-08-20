@@ -24,7 +24,7 @@ const toggelVideoLike = asyncHandler( async (req, res) => {
     throw new APIerror(404, "video not found");
   }
 
-  const like = await Like.findOne({video : video_id});
+  const like = await Like.findOne({video : video_id, likedBy: user_id});
 
 
   let deletedLike ;
@@ -88,7 +88,7 @@ const toggelCommentLike = asyncHandler( async (req, res) => {
     throw new APIerror(404, "comment not found");
   }
 
-  const like = await Like.findOne({comment : comment_id});
+  const like = await Like.findOne({comment : comment_id, owner: user_id});
 
 
   let deletedComment ;
