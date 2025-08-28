@@ -36,6 +36,7 @@ router.route("/regiseter").post(
   registerUser
 )
 
+
 router.route("/getUser").get(verifyJWT,getCurrentUser)
 
 router.route("/login").post(upload.none(),loginUser); 

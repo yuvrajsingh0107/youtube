@@ -8,15 +8,10 @@ import { APIresponse } from "../utils/APIresponse.js";
 const toggelVideoLike = asyncHandler( async (req, res) => {
   // kisne kiya  *
   const user_id = new mongoose.Types.ObjectId(req.user?._id);
-  console.log("req.user => ",req.user)
-  
   if(!user_id){
     throw new APIerror(409, "user Not login an authorized riquest");
   }
 
-  // console.log("type of parems : ",typeof(req.params.video));
-  // console.log(" parems video : ",req.params.video)
-  
   const video_id = new mongoose.Types.ObjectId(req.params?.video);
   // kon se pe kiya 
 
@@ -28,13 +23,8 @@ const toggelVideoLike = asyncHandler( async (req, res) => {
 
 
   let deletedLike ;
-  console.log("like : ", like)
-
-  // console.log("user id : ", user_id, " likedby : ", like.likedBy);
-  // console.log("varify user : ",like.likedBy.equals(user_id))
   if(like?.likedBy.equals(user_id)){
     deletedLike = await Like.findByIdAndDelete(like._id);
-    console.log("deleted like res : ", deletedLike);
     if( deletedLike){
     return res
     .status(200)
@@ -78,8 +68,6 @@ const toggelCommentLike = asyncHandler( async (req, res) => {
     throw new APIerror(409, "user Not login an authorized riquest");
   }
 
-  // console.log("type of parems : ",typeof(req.params.video));
-  // console.log(" parems video : ",req.params.video)
   
   const comment_id = new mongoose.Types.ObjectId(req.params?.comment);
   // kon se pe kiya 
@@ -92,13 +80,9 @@ const toggelCommentLike = asyncHandler( async (req, res) => {
 
 
   let deletedComment ;
-  console.log("like : ", like)
 
-  // console.log("user id : ", user_id, " likedby : ", like.likedBy);
-  // console.log("varify user : ",like.likedBy.equals(user_id))
   if(like?.likedBy.equals(user_id)){
     deletedComment = await Like.findByIdAndDelete(like._id);
-    console.log("deleted like res : ", deletedComment);
     if( deletedComment){
     return res
     .status(200)

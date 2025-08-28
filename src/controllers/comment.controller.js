@@ -7,7 +7,6 @@ import mongoose from "mongoose";
 
 
 const getAllcomments = asyncHandler( async (req, res) => {
-  console.log("in get all comments ")
   
   const videoId = new mongoose.Types.ObjectId(req.params?.videoId);
   const page = req.params?.page || 1;
@@ -15,7 +14,6 @@ const getAllcomments = asyncHandler( async (req, res) => {
     throw new APIerror(400, "video id is missing");
   }
 
-  console.log("video  id : ", videoId)
   const skip = (page - 1) * 10;
 
   const comments = await Comment.aggregate([
@@ -65,7 +63,6 @@ const getAllcomments = asyncHandler( async (req, res) => {
     
   ])
 
-  console.log("comments at backend : ", comments)
 
   return res
   .status(200)
@@ -82,8 +79,6 @@ const addComment = asyncHandler( async (req, res) => {
   if(!userId){
     throw new APIerror(409, " unquthorized riques tuser not login add comment")
   } 
-  // console.log("video id : ", videoId)
-  console.log("content : ", content)
   if(!videoId || !content){
     throw new APIerror(409, "missing information about comment");
   }
@@ -114,16 +109,12 @@ const deletCommet = asyncHandler( async (req, res) => {
   if(!comment){
     throw new APIerror(404, " comment not found");
   }
-  // console.log("comment : ",comment)
-  // console.log("user : ", user)
 
   if(!comment.owner.equals(user)){
     throw new APIerror(409, "unauthorized user can not delete comment");
   }
 
   const responce  = await Comment.deleteOne({_id : comment._id})
-  // console.log("responce : ",responce)
-  console.log("comment deleted successfully")
   if(responce.deletedCount !== 1){
     throw new APIerror(500 , "failed to delete comment");
   }
@@ -160,11 +151,9 @@ const updateComment = asyncHandler( async (req, res) => {
   }
   
   const comment = await Comment.findById(commet_id);
-  // console.log("comment : ",comment)
 
   if(comment.owner.equals(user_id)){
     const updatedcomment = await Comment.findByIdAndUpdate(commet_id,{content});
-    console.log("comment updated successfully")
     return res
     .status(200)
     .json(

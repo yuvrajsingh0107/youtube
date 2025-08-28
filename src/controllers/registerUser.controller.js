@@ -223,7 +223,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 
 const refreshAccessToker = asyncHandler(async (req, res) => {
-  const recivedRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+  console.log("req.body : ",req.body)
+  const recivedRefreshToken = req.cookies?.refreshToken || req.body.refreshToken.token;
 
   if (!recivedRefreshToken) {
     throw new APIerror(409, "user is not unauthorised");
@@ -242,7 +243,7 @@ const refreshAccessToker = asyncHandler(async (req, res) => {
   }
 
   if (recivedRefreshToken !== user.refreshToken) {
-    throw new APIerror(409, "token is sexpired user");
+    throw new APIerror(401, "token is expired user");
   }
 
   const { refreshToken, accessToken } = await genrateAccessTokenAndRefreshToken(user._id);
@@ -445,7 +446,8 @@ const updateFullName = asyncHandler(async (req, res) => {
 })
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-  const { userName } = req.params?.userName;
+  const  userName  = req.params?.userName;
+  console.log(userName)
   if (!userName) {
     throw new APIerror(404, "channel name is required");
   }
@@ -470,7 +472,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     {
       $lookup: {
         from: "subscriptions",
-        as: "suscribedChannel",
+        as: "subscribedChannel",
         localField: "_id",
         foreignField: "subscriber"
       }
@@ -478,10 +480,10 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     {
       $addFields: {
         subscriberCount: {
-          $size: "$subscriber"
+          $size: "$subscribers"
         },
         subscribedChannelCount: {
-          $size: "$suscribedChannel"
+          $size: "$subscribedChannel"
         },
         isSubscribed: {
           $cond: {
@@ -494,15 +496,16 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     },
     {
       $project: {
-        userName,
-        email,
-        fullName,
-        avatar,
-        coverImage,
-        isSubscribed,
-        subscribedChannelCount,
-        subscriberCount
+        userName: 1,
+        email: 1,
+        fullName: 1,
+        avatar: 1,
+        coverImage: 1,
+        isSubscribed: 1,
+        subscribedChannelCount: 1,
+        subscriberCount: 1
       }
+
     }
   ])
 

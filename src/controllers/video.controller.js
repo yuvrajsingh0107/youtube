@@ -11,7 +11,21 @@ import mongoose from "mongoose";
 // import fs from "fs";
 
 
-// panding he abhi aggrigation pipeline
+// get user all video
+
+const getchannelVideos = asyncHandler( async (req, res) => {
+  const { userId, page } = req.params;
+  // Logic to get videos of a specific user
+  const skipValue = (page - 1) * 10;
+  if(!userId){
+    throw new APIerror(404, "User not found");
+  }
+  const _id = new mongoose.Types.ObjectId(userId);
+  const videos = await Video.find({ owner: _id }).skip(skipValue).limit(10);
+  return res
+  .status(200)
+  .json(new APIresponse(200, videos, "User videos fetched successfully"));
+})
 
 
 // get video feed
@@ -59,8 +73,6 @@ const getFeed = asyncHandler(async (req, res) =>{
     }
   ]
 )
-  // console.log("videos : ", videos);
-  console.log("videos send successfully")
   return res
   .status(200)
   .json(
@@ -71,12 +83,11 @@ const getFeed = asyncHandler(async (req, res) =>{
 
 // get all videos based on querie
 const getSearchResult = asyncHandler( async (req, res) => {
-  // console.log(req.query.search);
   const query = req.query.search?.split(" ");
-  if(!query){
+
+  if(!query || query.length === 0){
     throw new APIerror(409, "search qury is messing ");
   }
-  console.log("queris : ", query)
 
   const videos =await Video.aggregate([
     {
@@ -122,9 +133,6 @@ const getSearchResult = asyncHandler( async (req, res) => {
     }
 
   ])
-  console.log("videos : ", videos)
-
- 
   return res
   .status(200)
   .json(
@@ -195,7 +203,6 @@ const uplodeVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
   const  videoId  = req.params?.videoId;
   const video_id = new mongoose.Types.ObjectId(videoId);
-  // console.log(req.query)
   if (!videoId) {
     throw new APIerror(404, " video ID not recived");
   }
@@ -233,14 +240,13 @@ const getVideoById = asyncHandler(async (req, res) => {
     }, 
     {
       $addFields: {
-        likes : {
+        likes: {
           $size: "$likes"
         }
       }
     }
   ])
 
-  console.log("video : ", video[0])
 
   return res.status(200)
     .json(
@@ -269,12 +275,9 @@ const deleteVideo = asyncHandler( async (req, res) => {
   const video = await Video.findById(video_id);
 
   // delete from cloudinery
-  console.log("video : ",video)
 
   const deleteRisponceByCloudinery = await deleteFileOnCloudniry(video.videoFile,"video");
   const deleteThumbnailRisFromCloudinery = await deleteFileOnCloudniry(video.thumbnail)
-  console.log("cloudinery responce : ", deleteRisponceByCloudinery)
-  console.log("cloudinery responce : ", deleteThumbnailRisFromCloudinery)
 
   if(video.owner.equals(user_id)){
     const deleteVideo = await Video.findByIdAndDelete(video_id);
@@ -293,7 +296,7 @@ const deleteVideo = asyncHandler( async (req, res) => {
   }
 })
 
-export { getFeed, getSearchResult, uplodeVideo , getVideoById , deleteVideo}
+export {getchannelVideos, getFeed, getSearchResult, uplodeVideo , getVideoById , deleteVideo}
 
 /* 
 {"_id":{"$oid":"6893919b26335cc1f0f1e7eb"},"videoFile":"http://res.cloudinary.com/dixsg9gz0/video/upload/v1754501521/rvlhnilvsynwhkmtvdw6.mp4","thumbnail":"http://res.cloudinary.com/dixsg9gz0/image/upload/v1754501529/cjsgaobrb1vqfal7ztn8.png","owner":{"$oid":"6893738172a24b3650db7088"},"title":"test video","description":"first test","duration":{"$numberDouble":"8.783278"},"views":{"$numberInt":"0"},"isPublic":true,"__v":{"$numberInt":"0"}}

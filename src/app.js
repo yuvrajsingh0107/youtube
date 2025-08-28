@@ -8,10 +8,6 @@ import cookieParser from "cookie-parser";
 
 
 
-// app.use(cors({
-//   origin: "http://localhost:3000", // your frontend domain
-//   credentials: true                // 👈 allow cookies
-// }));
 
 
 
@@ -19,16 +15,7 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 
-        const corsOptions = {
-          origin: function (origin, callback) {
-            if (allowedOrigins.indexOf(origin) !== -1 || !origin) { // !origin allows same-origin requests
-              callback(null, true);
-            } else {
-              callback(new Error('Not allowed by CORS'));
-            }
-          },
-          credentials: true // If you need to allow cookies/credentials
-        };
+        // 
 
 app.use(cors({
   origin: "https://my-tube-rho-two.vercel.app" ,
@@ -67,6 +54,7 @@ import videoRouter from './routes/video.routes.js';
 import commentRouter from './routes/comment.route.js';
 import likeRouter from "./routes/like.routes.js";
 import subscribeRouter from './routes/subscription.routes.js';
+import channelRouter from "./routes/channel.route.js"
 // 
 
 app.use("/api/v1/users", userRouter);
@@ -75,6 +63,7 @@ app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/comment", commentRouter);
 app.use("/api/v1/toggelLike" , likeRouter);
 app.use("/api/v1/subscribe" , subscribeRouter);
+app.use("/api/v1/channel", channelRouter )
 
 
 

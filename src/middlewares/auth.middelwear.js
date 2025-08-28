@@ -2,35 +2,33 @@ import jwt from "jsonwebtoken";
 import { APIerror } from "../utils/APIerror.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from '../models/user.models.js';
+import { APIresponse } from "../utils/APIresponse.js";
 
 export const verifyJWT = asyncHandler(
   async (req, res, next) => {
     try {
-      console.log("req.cookies => ", req.cookies)
-      console.log("header auth : ", req.headers["authorization"])
-      console.log("header : ", req.headers)
-      const token =  req.header("Authorization")?.replace("Bearer ", "");
-      console.log("Token from cookies or header:", token);
-      if (!token) {
-        throw new APIerror(401, "unauthorize user");
+      const accessToken =  req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+      if (!accessToken) {
+        throw new APIerror(401, "Token not found");
       }
-      console.log("JWT Token:", token);
 
-      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
-      console.log("Decoded JWT Token:", decodedToken);
-      const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
+      const user = await User.findById(decodedToken?._id).select("-password ");
       
       if (!user) {
-        throw new APIerror(500, "Invalid access token");
+        throw new APIerror(500, "Invalid access token user not found");
       }
-      console.log("Authenticated User:", user);
       req.user = user;
-
+      console.log("USER UTHENTICATED SUCESS FULLY")
       next();
     } catch (error) {
+      console.log(error.message)
+      if(error.message == "jwt expired"){
+        console.log("sending failer responce");
+        return new APIresponse(401, {}, "access token expired");
+      }
       throw new APIerror(401, error?.message || "Invalid access token")
-
     }
   }
 )

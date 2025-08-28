@@ -31,8 +31,6 @@ const toggelSubscription = asyncHandler(async (req, res) => {
       channel: channel_id
     })
 
-    // console.log("subscription : ", subscription)
-    console.log("subscription sent successfully")
     if(!subscription){
       return {
         isSubscribed: false,
@@ -47,13 +45,10 @@ const toggelSubscription = asyncHandler(async (req, res) => {
   }
 
   const {isSubscribed , subscription_id} = await help()
-  // console.log("test : ",await help())
-  console.log("isSub : ",isSubscribed, "subscriptinon_id : ", subscription_id)
 
   if(isSubscribed){
     const removedSunbscription = await Subscription.findByIdAndDelete(subscription_id)
 
-    console.log("removed sub : ", removedSunbscription)
     if(removedSunbscription){
       return res
       .status(200)
@@ -128,8 +123,6 @@ const subscribers = await Subscription.aggregate([
   }
 ]);
 
-
-  console.log("subscriberd : ", subscribers)
   return res
   .status(200)
   .json(
@@ -146,7 +139,6 @@ const getSubscribedChannels = asyncHandler( async (req, res) => {
   }
 
   const user_id = new mongoose.Types.ObjectId(userId);
-  console.log("uid : ",user_id)
 
   const subscribedChannels = await Subscription.aggregate(
     [
@@ -180,7 +172,6 @@ const getSubscribedChannels = asyncHandler( async (req, res) => {
     ]
   )
 
-console.log("channels : ",subscribedChannels)
 
   if(!subscribedChannels){
     throw new APIerror(404, "not found ")
