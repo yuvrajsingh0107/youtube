@@ -7,6 +7,7 @@ import { APIresponse } from '../utils/APIresponse.js';
 // import cloudnery from '../utils/cloudinary.js';
 import { deleteFileOnCloudniry, uplodeFileOnCloudinary } from '../utils/cloudinary.js';
 import mongoose from "mongoose";
+import { Subscription } from "../models/subscription.models.js";
 // import getVideoDurationInSeconds from "get-video-duration"
 // import fs from "fs";
 
@@ -201,12 +202,26 @@ const uplodeVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
+  const isSubscribe = false;
   const  videoId  = req.params?.videoId;
   const video_id = new mongoose.Types.ObjectId(videoId);
+  
   if (!videoId) {
     throw new APIerror(404, " video ID not recived");
   }
-
+  
+  if(req.user){
+   try {
+     const thisVideo = await Video.findById(video_id);
+     const subscribe = await Subscription.findOne({
+       channel: thisVideo.owner,
+       subscriber: req.user._id
+     })
+     if(subscribe) isSubscribe = true;
+   } catch (error) {
+    console.log(error);
+   }
+  }
   const video = await Video.aggregate([
     {
       $match: {
@@ -242,7 +257,8 @@ const getVideoById = asyncHandler(async (req, res) => {
       $addFields: {
         likes: {
           $size: "$likes"
-        }
+        },
+        isSubscribe: {}
       }
     }
   ])

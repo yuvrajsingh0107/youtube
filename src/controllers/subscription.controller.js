@@ -21,7 +21,6 @@ const toggelSubscription = asyncHandler(async (req, res) => {
   if(!channelId){
     throw new APIerror(409, "channel (user) id is missing");
   }
-
   const channel_id = new mongoose.Types.ObjectId(channelId);
 
 

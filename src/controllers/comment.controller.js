@@ -135,14 +135,19 @@ const updateComment = asyncHandler( async (req, res) => {
     throw new APIerror(409, " comment is missing");
   }
   const commet_id = new mongoose.Types.ObjectId(commentId);
-
+  const thisComment = await Comment.findById(commet_id);
+  
   const userID = req.user?._id;
-
+  
   if(!userID){
     throw new APIerror(409, "user id is missing");
   }
-
+  
   const user_id = new mongoose.Types.ObjectId(userID);
+  console.log(thisComment.owner,user_id)
+if( !user_id.equals(thisComment.owner)){
+  throw new APIerror(401, "unauthorized riquest");
+}
 
   const content = req.body?.content;
 
