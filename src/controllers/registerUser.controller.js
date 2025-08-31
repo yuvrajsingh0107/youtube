@@ -5,6 +5,7 @@ import { deleteFileOnCloudniry, uplodeFileOnCloudinary } from "../utils/cloudina
 import { APIresponse } from "../utils/APIresponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { Video } from "../models/video.model.js";
 
 
 const genrateAccessTokenAndRefreshToken = async (id) => {
@@ -570,8 +571,35 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
   )
 })
 
+const addVideoToHistory = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const videoId = req.params.videoId;
+
+  if (!userId || !videoId) {
+    throw new APIerror(404, "User ID and Video ID are required");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new APIerror(404, "User not found");
+  }
+
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new APIerror(404, "Video not found");
+  }
+
+  user.watchHistory.push(videoId);
+  await user.save();
+
+  return res.status(200).json(
+    new APIresponse(200, user.watchHistory, "Video added to watch history successfully")
+  );  
+})
+
 
 export {
+  addVideoToHistory,
   registerUser,
   loginUser,
   logoutUser,

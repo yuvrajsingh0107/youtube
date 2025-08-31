@@ -202,7 +202,6 @@ const uplodeVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-  const isSubscribe = false;
   const  videoId  = req.params?.videoId;
   const video_id = new mongoose.Types.ObjectId(videoId);
   
@@ -210,18 +209,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new APIerror(404, " video ID not recived");
   }
   
-  if(req.user){
-   try {
-     const thisVideo = await Video.findById(video_id);
-     const subscribe = await Subscription.findOne({
-       channel: thisVideo.owner,
-       subscriber: req.user._id
-     })
-     if(subscribe) isSubscribe = true;
-   } catch (error) {
-    console.log(error);
-   }
-  }
+  
   const video = await Video.aggregate([
     {
       $match: {
@@ -258,7 +246,6 @@ const getVideoById = asyncHandler(async (req, res) => {
         likes: {
           $size: "$likes"
         },
-        isSubscribe: {}
       }
     }
   ])
@@ -312,7 +299,26 @@ const deleteVideo = asyncHandler( async (req, res) => {
   }
 })
 
-export {getchannelVideos, getFeed, getSearchResult, uplodeVideo , getVideoById , deleteVideo}
+
+
+const incrimentViews = asyncHandler(async (req, res) => {
+  const videoId = req.params.videoId;
+  if (!videoId) {
+    throw new APIerror(404, "video ID not received");
+  }
+
+  const video = await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } }, { new: true });
+  if (!video) {
+    throw new APIerror(404, "video not found");
+  }
+
+  return res.status(200).json(
+    new APIresponse(200, video, "video views incremented successfully")
+  );
+});
+
+
+export {incrimentViews, getchannelVideos, getFeed, getSearchResult, uplodeVideo , getVideoById , deleteVideo}
 
 /* 
 {"_id":{"$oid":"6893919b26335cc1f0f1e7eb"},"videoFile":"http://res.cloudinary.com/dixsg9gz0/video/upload/v1754501521/rvlhnilvsynwhkmtvdw6.mp4","thumbnail":"http://res.cloudinary.com/dixsg9gz0/image/upload/v1754501529/cjsgaobrb1vqfal7ztn8.png","owner":{"$oid":"6893738172a24b3650db7088"},"title":"test video","description":"first test","duration":{"$numberDouble":"8.783278"},"views":{"$numberInt":"0"},"isPublic":true,"__v":{"$numberInt":"0"}}

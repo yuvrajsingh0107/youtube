@@ -5,6 +5,38 @@ import {Subscription} from '../models/subscription.models.js';
 import { APIresponse } from "../utils/APIresponse.js";
 
 
+// checkIsSubscribed
+const checkIsSubscribed = asyncHandler(async (req, res) => {
+  if(!req.user){
+    throw new APIerror(401,"user not login", "error");
+  }
+try {
+  
+    const userId = req.user._id;
+  
+    const channelId = req.params?.channelId;
+  
+    const isSubscribe = await Subscription.findOne({
+      subscriber: userId,
+      channel: channelId
+    })
+  console.log("is subscribed : ", isSubscribe)
+    if(isSubscribe){
+      return res
+      .status(200)
+      .json({subscribed: true})
+    }else {
+      return res
+      .status(200)
+      .json({subscribed: false})
+    }
+} catch (error) {
+  console.error(error);
+  throw new APIerror(500,error.message, error);
+}
+
+})
+
 // toggel subscription 
 const toggelSubscription = asyncHandler(async (req, res) => {
   // user --> loged in
@@ -183,4 +215,4 @@ const getSubscribedChannels = asyncHandler( async (req, res) => {
   )
 })
 
-export {toggelSubscription , getSubscribers , getSubscribedChannels}
+export {checkIsSubscribed , toggelSubscription , getSubscribers , getSubscribedChannels}
