@@ -1,7 +1,7 @@
 import {Router} from 'express';
 import { verifyJWT } from '../middlewares/auth.middelwear.js';
 import { upload } from '../middlewares/multer.middelwear.js';
-import { getSubscribedChannels, getSubscribers, toggelSubscription } from '../controllers/subscription.controller.js';
+import { getSubscribedChannels, getSubscribers, toggelSubscription , checkIsSubscribed } from '../controllers/subscription.controller.js';
 
 const router = Router();
 
@@ -21,6 +21,11 @@ router.route("/getSubscribers").get(
 router.route("/getSubscribedChannels").get(
   verifyJWT,
   getSubscribedChannels
+)
+
+router.route("/isSubscribed/:channelId").get(
+  verifyJWT,
+  checkIsSubscribed
 )
 
 export default router;

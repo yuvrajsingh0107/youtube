@@ -11,7 +11,8 @@ import {loginUser,
        getCurrentUser, 
        changePassword, 
        getUserChannelProfile, 
-       getUserWatchHistory} from '../controllers/registerUser.controller.js';
+       getUserWatchHistory,
+       addVideoToHistory} from '../controllers/registerUser.controller.js';
 import { upload } from "../middlewares/multer.middelwear.js"
 import { verifyJWT } from "../middlewares/auth.middelwear.js";
 const router = Router();
@@ -76,6 +77,9 @@ router.route("/changePassword").patch(  upload.none(),  verifyJWT,  changePasswo
 router.route("/channel/:userName").get(verifyJWT, getUserChannelProfile)
 
 router.route("/history").get(verifyJWT, getUserWatchHistory);
+
+// add video to watch history
+router.route("/addTohistory/:videoId").patch(verifyJWT, upload.none(), addVideoToHistory);
 
 export default router;
 

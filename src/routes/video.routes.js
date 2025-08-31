@@ -1,7 +1,7 @@
 import  { Router } from 'express';
 import { verifyJWT } from '../middlewares/auth.middelwear.js';
 import { upload } from '../middlewares/multer.middelwear.js';
-import { getVideoById, uplodeVideo , deleteVideo, getSearchResult, getFeed, getchannelVideos } from '../controllers/video.controller.js';
+import { getVideoById, uplodeVideo , deleteVideo, getSearchResult, getFeed, getchannelVideos, incrimentViews } from '../controllers/video.controller.js';
 
 const router = Router()
 
@@ -43,11 +43,17 @@ router.route("/search").get(
 router.route("/feed").get(
   getFeed
 )
+// add a view count
 
+router.route("/addView/:videoId").patch(
+  verifyJWT,
+  upload.none(),
+  incrimentViews
+  // incrimentViewsComtroler
+)
 
 // video of specfic user
 router.route("/getChannelVideos/:userId/:page").get(
-  
     getchannelVideos
   )
 
