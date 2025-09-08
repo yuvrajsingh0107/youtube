@@ -3,6 +3,7 @@ import { APIerror } from "../utils/APIerror.js";
 import { APIresponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Like } from '../models/likes.models.js';
+import mongoose from "mongoose";
 
 
 // create
@@ -16,7 +17,7 @@ const createTweet = (async (req, res) => {
   if (!title || !content) {
     throw new APIerror(400, "title and content are required to create tweet");
   }
-  console.log("tweet", content)
+  // console.log("tweet", content)
 
   try {
     const tweet = await Tweet.create({
@@ -24,7 +25,7 @@ const createTweet = (async (req, res) => {
       content,
       owner: req.user._id
     });
-    res.status(201).json(new APIresponse(201, tweet, "tweet created successfully"));
+    return res.status(201).json(new APIresponse(201, tweet, "tweet created successfully"));
   } catch (error) {
     throw new APIerror(500, "failed to create tweet");
   }
@@ -38,10 +39,10 @@ const createTweet = (async (req, res) => {
 
 // get tweet in feed
 const getTweetFeed = asyncHandler(async (req, res) => {
-  const { page } = req?.params;
+  const { page , userId } = req?.params;
   const PAGE_SIZE = 5;
   const skip = (page - 1) * PAGE_SIZE;
-
+  console.log(userId)
   try {
     const tweets = await Tweet.aggregate([
       {
@@ -57,6 +58,7 @@ const getTweetFeed = asyncHandler(async (req, res) => {
           foreignField: "_id",
           localField: "owner",
           pipeline: [
+           
             {
               $project: {
                 userName: 1,
@@ -76,7 +78,24 @@ const getTweetFeed = asyncHandler(async (req, res) => {
         }
       },
       {
+        $addFields: {
+          isliked: {
+            $in: [
+          new mongoose.Types.ObjectId(userId),
+          {
+            $map: {
+              input: "$likes",
+              as: "like",
+              in: "$$like.likedBy"
+            }
+          }
+        ]
+          }
+        }
+      },
+      {
         $project: {
+          isliked: 1,
           likes: {
             $size: "$likes"
           },
@@ -104,16 +123,35 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
   if(!tweetId){
     throw new APIerror(404, "tweet Id is missing");
   }
-
-  const like = await Like.findOne({
-    likedBy: user._id,
-    tweet: tweetId
-  })
-
-  if(like){
-    const res = await Like.findByIdAndDelete(like._id);
-    console.log(res)
+  try {
+    
+    const like = await Like.findOne({
+      likedBy: user._id,
+      tweet: tweetId
+    })
+  
+    if(like){
+      const toggeledLike = await Like.findByIdAndDelete(like._id);
+      // console.log(res)
+      return res
+      .status(200)
+      .json(
+        new APIresponse(200,toggeledLike,"disliked sucess fully")
+      )
+    }
+  
+    const toggeledLike = await Like.create({
+      likedBy: user._id,
+      tweet: tweetId
+    })
+  
+    return res
+    .status(200)
+    .json(new APIresponse(200, {toggeledLike}, "liked sucess fully"));
+  
+  } catch (error) {
+    throw new APIerror(500, error.message)
   }
 })
 
-export { createTweet, getTweetFeed }
+export { createTweet, getTweetFeed, toggleTweetLike }

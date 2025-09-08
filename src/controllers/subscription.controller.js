@@ -185,20 +185,24 @@ const getSubscribedChannels = asyncHandler( async (req, res) => {
           localField: "channel",
           foreignField: "_id",
           pipeline: [
+            
             {
               $project: {
                 avatar: 1,
                 fullName: 1,
                 userName: 1,
                 email: 1,
-                _id: 1
+                _id: 1,
               }
             }
           ] 
         }
       },
+      
+      
+      
       // {
-      //   $unwind: "$channelinfo"
+      //   
       // }
     ]
   )
