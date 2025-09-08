@@ -18,8 +18,9 @@ const genrateAccessTokenAndRefreshToken = async (id) => {
     const accessToken = await user.genrateAssessToken();
 
     user.refreshToken = refreshToken;
+    user.accessToken = accessToken;
     await user.save({ validateBeforeSave: false });
-
+    // console.log("genrated user tokens",refreshToken)
     return { refreshToken, accessToken }
 
   } catch (error) {
@@ -224,8 +225,11 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 
 const refreshAccessToker = asyncHandler(async (req, res) => {
-  console.log("req.body : ",req.body)
+  // console.log("req.body : ",req.body) "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODlmMWU3ZjVkNjJkYThiNjYxODc4ZmQiLCJpYXQiOjE3NTY3MjE0ODEsImV4cCI6MTc1NzU4NTQ4MX0.g2J0uN-jo7kqP_MnKb0gmOxzA26kDV1p8FBfXABnVnw"
+  // console.log("req.cookies : ",req.cookies)
+
   const recivedRefreshToken = req.cookies?.refreshToken || req.body.refreshToken.token;
+  // console.log("================================= req recived =======================================")
 
   if (!recivedRefreshToken) {
     throw new APIerror(409, "user is not unauthorised");
@@ -242,20 +246,25 @@ const refreshAccessToker = asyncHandler(async (req, res) => {
   if (!user) {
     throw new APIerror(407, "invalid refresh token")
   }
+  // console.log("user :",user)
+  // console.log("recived : ",recivedRefreshToken)
+  // console.log("actule : ",user.refreshToken)
 
   if (recivedRefreshToken !== user.refreshToken) {
     throw new APIerror(401, "token is expired user");
   }
-
   const { refreshToken, accessToken } = await genrateAccessTokenAndRefreshToken(user._id);
 
-  const logedInUser = await User.findById(user._id).select("-password -refreshToken");
+  const logedInUser = await User.findById(user._id).select("-password -refreshToken -watchHistory");
+  logedInUser[accessToken] = accessToken;
+  // console.log("loged in user : ",logedInUser,accessToken);
 
   const optins = {
     httpOnly: true,
     secure: true,
     sameSite: "none"
   }
+  // console.log("******************************** res send ***************************************************")
 
   return res
     .status(200)
@@ -265,7 +274,9 @@ const refreshAccessToker = asyncHandler(async (req, res) => {
       new APIresponse(
         200,
         {
-          data: accessToken, refreshToken, logedInUser
+          logedInUser,
+          accessToken,
+          refreshToken
         },
         "user login sucessfully"
       )

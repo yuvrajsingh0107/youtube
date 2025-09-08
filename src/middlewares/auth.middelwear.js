@@ -6,6 +6,7 @@ import { APIresponse } from "../utils/APIresponse.js";
 
 export const verifyJWT = asyncHandler(
   async (req, res, next) => {
+    console.log("in verifyJWT middleware")
     try {
       const accessToken =  req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
       if (!accessToken) {
@@ -20,7 +21,7 @@ export const verifyJWT = asyncHandler(
         throw new APIerror(500, "Invalid access token user not found");
       }
       req.user = user;
-      console.log("USER UTHENTICATED SUCESS FULLY")
+      console.log("USER AUTHENTICATED SUCCESSFULLY")
       next();
     } catch (error) {
       console.log(error.message)

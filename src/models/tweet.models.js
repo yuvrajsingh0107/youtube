@@ -1,9 +1,13 @@
-import mongoose, { Schema, STATES } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import mongooseAggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 
 const schema  = new Schema(
   {
+  title: {
+    type: String,
+    require: true,
+  },
   content: {
     type: String,
     require: true,
@@ -14,7 +18,6 @@ const schema  = new Schema(
     ref: "User",
     require: true
   }
-
   },
   {
     timestamps: true
